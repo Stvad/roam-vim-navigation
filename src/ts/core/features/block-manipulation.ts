@@ -3,6 +3,7 @@ import {copyBlockEmbed, copyBlockReference} from 'src/core/roam/block'
 import {Feature, Shortcut} from '../settings'
 import {RoamNode, Selection} from '../roam/roam-node'
 import {Roam} from '../roam/roam'
+import {Keyboard} from '../common/keyboard'
 
 export const config: Feature = {
     id: 'block_manipulation',
@@ -37,7 +38,19 @@ export const config: Feature = {
             initValue: 'ctrl+meta+c',
             onPress: () => copyBlockEmbed(Roam.getRoamBlockInput()?.id),
         } as Shortcut,
+        {
+            type: 'shortcut',
+            id: 'collapseBlockIntoParent',
+            label: 'Collapse block into parent',
+            initValue: 'Meta+shift+up',
+            onPress: () => collapseBlockIntoParent(),
+        } as Shortcut,
     ],
+}
+
+const collapseBlockIntoParent = async () => {
+    await Roam.moveCursorToStart()
+    await Keyboard.pressBackspace()
 }
 
 const duplicate = () => {
