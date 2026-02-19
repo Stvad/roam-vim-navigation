@@ -1,9 +1,10 @@
 import {copyBlockEmbed, copyBlockReference} from 'src/core/roam/block'
 
+import {Selectors} from 'src/core/roam/selectors'
+
 import {Feature, Shortcut} from '../settings'
 import {RoamNode, Selection} from '../roam/roam-node'
 import {Roam} from '../roam/roam'
-import {Keyboard} from '../common/keyboard'
 
 export const config: Feature = {
     id: 'block_manipulation',
@@ -49,8 +50,21 @@ export const config: Feature = {
 }
 
 const collapseBlockIntoParent = async () => {
-    await Roam.moveCursorToStart()
-    await Keyboard.pressBackspace()
+    const input = Roam.getRoamBlockInput()
+    if (!input) return
+
+    // Walk up: current block container -> parent block container
+    const currentContainer = input.closest(Selectors.blockContainer)
+    const parentContainer = currentContainer?.parentElement?.closest(Selectors.blockContainer)
+    if (!parentContainer) return
+
+    const parentBlock = parentContainer.querySelector(Selectors.block) as HTMLElement
+    if (!parentBlock) return
+
+    // Collapse the parent (folds its children, hiding the current block)
+    await Roam.toggleFoldBlock(parentBlock)
+    // Focus the parent block
+    await Roam.activateBlock(parentBlock)
 }
 
 const duplicate = () => {
