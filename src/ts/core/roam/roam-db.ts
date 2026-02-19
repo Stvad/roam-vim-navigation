@@ -7,16 +7,14 @@ type RoamPage = {
 
 export const RoamDb = {
     getBlockById(dbId: number) {
-        // @ts-ignore
-        return runInPageContext((...args: any[]) => window.roamAlphaAPI.pull(...args), '[*]', dbId)
+        return runInPageContext((pattern: string, id: number) => window.roamAlphaAPI.pull(pattern, id), '[*]', dbId)
     },
 
     query(query: string, ...params: any[]) {
         console.log('Executing Roam DB query', query)
         console.log('Query params', params)
 
-        // @ts-ignore
-        return runInPageContext((...args: any[]) => window.roamAlphaAPI.q(...args), query, ...params)
+        return runInPageContext((q: string, ...p: any[]) => window.roamAlphaAPI.q(q, ...p), query, ...params)
     },
 
     queryFirst(query: string, ...params: any[]) {
@@ -35,8 +33,38 @@ export const RoamDb = {
     },
 
     updateBlockText(uid: string, newText: string) {
-        // @ts-ignore
-        runInPageContext((...args: any[]) => window.roamAlphaAPI.updateBlock(...args), {block: {uid, string: newText}})
+        runInPageContext((params: {block: {uid: string; string: string}}) => window.roamAlphaAPI.updateBlock(params), {
+            block: {uid, string: newText},
+        })
+    },
+
+    getFocusedBlockUid(): string | null {
+        return runInPageContext(() => {
+            const focused = window.roamAlphaAPI.ui.getFocusedBlock()
+            return focused ? focused['block-uid'] : null
+        })
+    },
+
+    getParentBlockUid(childUid: string): string | null {
+        const results = this.query(
+            '[:find ?parent-uid :in $ ?child-uid :where [?child :block/uid ?child-uid] [?parent :block/children ?child] [?parent :block/uid ?parent-uid]]',
+            childUid
+        )
+        return results?.[0]?.[0] ?? null
+    },
+
+    setBlockOpen(uid: string, open: boolean) {
+        runInPageContext((params: {block: {uid: string; open: boolean}}) => window.roamAlphaAPI.updateBlock(params), {
+            block: {uid, open},
+        })
+    },
+
+    focusBlock(uid: string) {
+        runInPageContext((blockUid: string) => {
+            window.roamAlphaAPI.ui.setBlockFocusAndContext({
+                location: {'block-uid': blockUid, 'window-id': 'main-window'},
+            })
+        }, uid)
     },
 
     getAllPages(): RoamPage[] {
