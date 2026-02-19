@@ -39,6 +39,36 @@ export const RoamDb = {
         runInPageContext((...args: any[]) => window.roamAlphaAPI.updateBlock(...args), {block: {uid, string: newText}})
     },
 
+    getFocusedBlockUid(): string | null {
+        return runInPageContext(() => {
+            // @ts-ignore
+            const focused = window.roamAlphaAPI.ui.getFocusedBlock()
+            return focused ? focused['block-uid'] : null
+        })
+    },
+
+    getParentBlockUid(childUid: string): string | null {
+        const results = this.query(
+            '[:find ?parent-uid :in $ ?child-uid :where [?child :block/uid ?child-uid] [?parent :block/children ?child] [?parent :block/uid ?parent-uid]]',
+            childUid
+        )
+        return results?.[0]?.[0] ?? null
+    },
+
+    setBlockOpen(uid: string, open: boolean) {
+        // @ts-ignore
+        runInPageContext((...args: any[]) => window.roamAlphaAPI.updateBlock(...args), {block: {uid, open}})
+    },
+
+    focusBlock(uid: string) {
+        runInPageContext((...args: any[]) => {
+            // @ts-ignore
+            window.roamAlphaAPI.ui.setBlockFocusAndContext({
+                location: {'block-uid': args[0], 'window-id': 'main-window'},
+            })
+        }, uid)
+    },
+
     getAllPages(): RoamPage[] {
         return this.query(
             '[:find ?uid ?title :where [?page :node/title ?title] [?page :block/uid ?uid]]'

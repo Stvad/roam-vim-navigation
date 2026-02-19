@@ -1,10 +1,9 @@
 import {copyBlockEmbed, copyBlockReference} from 'src/core/roam/block'
 
-import {Selectors} from 'src/core/roam/selectors'
-
 import {Feature, Shortcut} from '../settings'
 import {RoamNode, Selection} from '../roam/roam-node'
 import {Roam} from '../roam/roam'
+import {RoamDb} from '../roam/roam-db'
 
 export const config: Feature = {
     id: 'block_manipulation',
@@ -49,22 +48,15 @@ export const config: Feature = {
     ],
 }
 
-const collapseBlockIntoParent = async () => {
-    const input = Roam.getRoamBlockInput()
-    if (!input) return
+const collapseBlockIntoParent = () => {
+    const childUid = RoamDb.getFocusedBlockUid()
+    if (!childUid) return
 
-    // Walk up: current block container -> parent block container
-    const currentContainer = input.closest(Selectors.blockContainer)
-    const parentContainer = currentContainer?.parentElement?.closest(Selectors.blockContainer)
-    if (!parentContainer) return
+    const parentUid = RoamDb.getParentBlockUid(childUid)
+    if (!parentUid) return
 
-    const parentBlock = parentContainer.querySelector(Selectors.block) as HTMLElement
-    if (!parentBlock) return
-
-    // Collapse the parent (folds its children, hiding the current block)
-    await Roam.toggleFoldBlock(parentBlock)
-    // Focus the parent block
-    await Roam.activateBlock(parentBlock)
+    RoamDb.setBlockOpen(parentUid, false)
+    RoamDb.focusBlock(parentUid)
 }
 
 const duplicate = () => {
