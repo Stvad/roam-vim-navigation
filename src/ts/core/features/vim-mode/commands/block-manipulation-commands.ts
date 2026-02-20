@@ -33,5 +33,5 @@ const collapseIntoParent = () => {
 export const BlockManipulationCommands = [
     nimap('command+shift+h', 'Move Block Up', moveBlockUp),
     nimap('command+shift+k', 'Move Block Down', moveBlockDown),
-    nmap('shift+z', 'Collapse Into Parent', collapseIntoParent),
+    nmap('shift+ctrl+z', 'Collapse Into Parent', collapseIntoParent),
 ]
