@@ -35,6 +35,7 @@ Replace mode:
 You can also **increment or decrement dates**:
 
 * While editing a block, press `Ctrl-Alt-Up/Down` to increment/decrement any date inside. If a block has multiple dates, place your cursor on the date.
+* Press `Ctrl+Shift+Left/Right` to decrement/increment dates by a week.
     
 ### Spaced Repetition
 
