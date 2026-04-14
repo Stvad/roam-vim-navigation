@@ -32,17 +32,33 @@ export const returnToNormalMode = async () => {
     blurEverything()
 }
 
-type CommandMapper = (key: string, label: string, onPress: (mode: Mode) => void) => Shortcut
+type CommandMapper = (key: string, label: string, onPress: (mode: Mode, event: KeyboardEvent) => void) => Shortcut
+
+type PropagationControllableKeyboardEvent = KeyboardEvent & {
+    nativeEvent?: KeyboardEvent & {stopImmediatePropagation?: () => void}
+    stopImmediatePropagation?: () => void
+}
+
+const consumeKeyboardEvent = (event: KeyboardEvent) => {
+    const controllableEvent = event as PropagationControllableKeyboardEvent
+    controllableEvent.preventDefault()
+    controllableEvent.stopPropagation()
+    controllableEvent.stopImmediatePropagation?.()
+    controllableEvent.nativeEvent?.stopImmediatePropagation?.()
+}
 
 const _map = (modes: Mode[]): CommandMapper => (key, label, onPress) => ({
     type: 'shortcut',
     id: `blockNavigationMode_${label}`,
     label,
     initValue: key,
-    onPress: async () => {
+    onPress: async event => {
         const mode = getMode()
         if (modes.includes(mode)) {
-            await onPress(getMode())
+            if (mode === Mode.NORMAL) {
+                consumeKeyboardEvent(event)
+            }
+            await onPress(mode, event)
             updateVimView()
         }
     },
