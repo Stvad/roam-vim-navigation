@@ -57,7 +57,7 @@ const modifyBlockDate = (modifier: (input: number) => number) => {
 }
 
 export const EditCommands = [
-    nmap('cmd+enter', 'Toggle done', toggleDone),
+    nmap('cmd+enter', 'Toggle done', toggleDone, true),
     ...SRSSignals.map(it =>
         nmap(`ctrl+shift+${it}`, `Reschedule Current Note (${SRSSignal[it]})`, () => rescheduleSelectedNote(it))
     ),

@@ -32,7 +32,12 @@ export const returnToNormalMode = async () => {
     blurEverything()
 }
 
-type CommandMapper = (key: string, label: string, onPress: (mode: Mode, event: KeyboardEvent) => void) => Shortcut
+type CommandMapper = (
+    key: string,
+    label: string,
+    onPress: (mode: Mode, event: KeyboardEvent) => void,
+    consumeEvent?: boolean
+) => Shortcut
 
 type PropagationControllableKeyboardEvent = KeyboardEvent & {
     nativeEvent?: KeyboardEvent & {stopImmediatePropagation?: () => void}
@@ -47,7 +52,7 @@ const consumeKeyboardEvent = (event: KeyboardEvent) => {
     controllableEvent.nativeEvent?.stopImmediatePropagation?.()
 }
 
-const _map = (modes: Mode[]): CommandMapper => (key, label, onPress) => ({
+const _map = (modes: Mode[]): CommandMapper => (key, label, onPress, consumeEvent = false) => ({
     type: 'shortcut',
     id: `blockNavigationMode_${label}`,
     label,
@@ -55,7 +60,7 @@ const _map = (modes: Mode[]): CommandMapper => (key, label, onPress) => ({
     onPress: async event => {
         const mode = getMode()
         if (modes.includes(mode)) {
-            if (mode === Mode.NORMAL) {
+            if (consumeEvent) {
                 consumeKeyboardEvent(event)
             }
             await onPress(mode, event)

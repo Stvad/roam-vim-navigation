@@ -33,9 +33,30 @@ describe('Vim mode shortcuts', () => {
         mockGetActiveEditElement.mockReturnValue(null)
     })
 
-    it('consumes handled keyboard events in normal mode', async () => {
+    it('does not consume handled keyboard events unless requested', async () => {
         const handler = jest.fn()
         const shortcut = nmap('cmd+enter', 'Toggle done', handler)
+        const nativeEvent = {stopImmediatePropagation: jest.fn()}
+        const event = ({
+            nativeEvent,
+            preventDefault: jest.fn(),
+            stopImmediatePropagation: jest.fn(),
+            stopPropagation: jest.fn(),
+        } as unknown) as KeyboardEvent
+
+        await shortcut.onPress(event)
+
+        expect(event.preventDefault).not.toHaveBeenCalled()
+        expect(event.stopPropagation).not.toHaveBeenCalled()
+        expect(event.stopImmediatePropagation).not.toHaveBeenCalled()
+        expect(nativeEvent.stopImmediatePropagation).not.toHaveBeenCalled()
+        expect(handler).toHaveBeenCalledWith(expect.any(Number), event)
+        expect(mockUpdateVimView).toHaveBeenCalled()
+    })
+
+    it('consumes handled keyboard events when requested', async () => {
+        const handler = jest.fn()
+        const shortcut = nmap('cmd+enter', 'Toggle done', handler, true)
         const nativeEvent = {stopImmediatePropagation: jest.fn()}
         const event = ({
             nativeEvent,
