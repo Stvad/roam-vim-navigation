@@ -36,8 +36,12 @@ type CommandMapper = (
     key: string,
     label: string,
     onPress: (mode: Mode, event: KeyboardEvent) => void,
-    consumeEvent?: boolean
+    params?: CommandMapperParams
 ) => Shortcut
+
+type CommandMapperParams = {
+    consumeEvent?: boolean
+}
 
 type PropagationControllableKeyboardEvent = KeyboardEvent & {
     nativeEvent?: KeyboardEvent & {stopImmediatePropagation?: () => void}
@@ -52,7 +56,7 @@ const consumeKeyboardEvent = (event: KeyboardEvent) => {
     controllableEvent.nativeEvent?.stopImmediatePropagation?.()
 }
 
-const _map = (modes: Mode[]): CommandMapper => (key, label, onPress, consumeEvent = false) => ({
+const _map = (modes: Mode[]): CommandMapper => (key, label, onPress, params = {}) => ({
     type: 'shortcut',
     id: `blockNavigationMode_${label}`,
     label,
@@ -60,7 +64,7 @@ const _map = (modes: Mode[]): CommandMapper => (key, label, onPress, consumeEven
     onPress: async event => {
         const mode = getMode()
         if (modes.includes(mode)) {
-            if (consumeEvent) {
+            if (params.consumeEvent) {
                 consumeKeyboardEvent(event)
             }
             await onPress(mode, event)

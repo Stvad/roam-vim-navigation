@@ -56,7 +56,7 @@ describe('Vim mode shortcuts', () => {
 
     it('consumes handled keyboard events when requested', async () => {
         const handler = jest.fn()
-        const shortcut = nmap('cmd+enter', 'Toggle done', handler, true)
+        const shortcut = nmap('cmd+enter', 'Toggle done', handler, {consumeEvent: true})
         const nativeEvent = {stopImmediatePropagation: jest.fn()}
         const event = ({
             nativeEvent,
