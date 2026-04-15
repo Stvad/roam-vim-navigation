@@ -29,18 +29,15 @@ npm install
 npm run build:vim-plugin
 ```
 
-That generates:
+That generates a direct Roam entry module at:
 
-- `dist/roam-vim-plugin.js` – bundled runtime
-- `dist/extension.js` – Roam-compatible entrypoint for hosted installs
+- `extension.js` – bundled Roam-compatible module at the repo root
+- `dist/extension.js` – copy for hosted installs such as GitHub Pages
 
-The repo root also contains:
-
-- `extension.js` – wrapper entrypoint for repo-root based installs
-- `build.sh` – Roam Depot compatible build script
+`build.sh` runs the same direct build for Roam Depot compatible installs.
 
 ## Development Notes
 
 - The standalone plugin entry lives in `src/ts/roam-vim-plugin/`
 - The Vim runtime is still reused from `src/ts/core/features/vim-mode/`
-- CI and GitHub Pages now build the standalone plugin artifact instead of the old extension bundle
+- CI and GitHub Pages now build the direct `extension.js` artifact instead of the old extension bundle

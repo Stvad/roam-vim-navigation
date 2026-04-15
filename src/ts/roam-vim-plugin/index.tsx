@@ -112,6 +112,4 @@ const plugin = {
     onunload,
 }
 
-window.RoamToolkitVimPlugin = plugin
-
 export default plugin
