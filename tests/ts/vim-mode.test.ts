@@ -93,4 +93,11 @@ describe('Vim mode shortcuts', () => {
         expect(handler).not.toHaveBeenCalled()
         expect(mockUpdateVimView).not.toHaveBeenCalled()
     })
+
+    it('creates unique ids for shortcuts that share a label', () => {
+        const firstShortcut = nmap('a', 'Click Selection and Go-to End of Line', jest.fn())
+        const secondShortcut = nmap('shift+a', 'Click Selection and Go-to End of Line', jest.fn())
+
+        expect(firstShortcut.id).not.toEqual(secondShortcut.id)
+    })
 })

@@ -1,19 +1,20 @@
 import {injectStyle} from 'src/core/common/css'
-import {Settings} from 'src/core/settings'
 import {Selectors} from 'src/core/roam/selectors'
 
 export const HINT_IDS = [0, 1, 2, 3, 4, 5, 6]
 export const DEFAULT_HINT_KEYS = ['q', 'w', 'e', 'r', 't', 'f', 'b']
 
-const hintKey = async (n: number) =>
-    Settings.get('block_navigation_mode', `blockNavigationMode_Click Hint ${n}`, DEFAULT_HINT_KEYS[n])
+type HintKeyProvider = (n: number) => Promise<string>
+
+const defaultHintKeyProvider: HintKeyProvider = async n => DEFAULT_HINT_KEYS[n]
+let hintKeyProvider: HintKeyProvider = defaultHintKeyProvider
 
 const HINT_CSS_CLASS = 'roam-toolkit--hint'
 const hintCssClass = (n: number) => HINT_CSS_CLASS + n
 const HINT_CSS_CLASSES = HINT_IDS.map(hintCssClass)
 
 const hintCss = async (n: number) => {
-    const key = await hintKey(n)
+    const key = await hintKeyProvider(n)
     return `
         .${hintCssClass(n)}::after {
             content: "[${key}]";
@@ -21,7 +22,8 @@ const hintCss = async (n: number) => {
     `
 }
 
-Promise.all(HINT_IDS.map(hintCss)).then(cssClasses => {
+const injectHintStyles = async () => {
+    const cssClasses = await Promise.all(HINT_IDS.map(hintCss))
     injectStyle(
         cssClasses.join('\n') +
             `
@@ -46,7 +48,18 @@ Promise.all(HINT_IDS.map(hintCss)).then(cssClasses => {
         `,
         'roam-toolkit-block-mode--hint'
     )
-})
+}
+
+void injectHintStyles()
+
+export const setHintKeyProvider = async (provider: HintKeyProvider) => {
+    hintKeyProvider = provider
+    await injectHintStyles()
+}
+
+export const resetHintKeyProvider = async () => {
+    await setHintKeyProvider(defaultHintKeyProvider)
+}
 
 export const updateVimHints = (block: HTMLElement) => {
     // button is for reference counts

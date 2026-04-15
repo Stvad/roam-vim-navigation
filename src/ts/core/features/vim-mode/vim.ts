@@ -2,10 +2,10 @@ import {blurEverything, updateVimView} from 'src/core/features/vim-mode/vim-view
 import {getActiveEditElement} from 'src/core/common/dom'
 import {Selectors} from 'src/core/roam/selectors'
 import {delay, repeatAsync} from 'src/core/common/async'
-import {Shortcut} from 'src/core/settings'
 import {VimRoamPanel} from 'src/core/features/vim-mode/roam/roam-vim-panel'
 import {Keyboard} from 'src/core/common/keyboard'
 import {RoamHighlight} from 'src/core/features/vim-mode/roam/roam-highlight'
+import {Shortcut} from './types'
 
 export enum Mode {
     INSERT,
@@ -56,9 +56,11 @@ const consumeKeyboardEvent = (event: KeyboardEvent) => {
     controllableEvent.nativeEvent?.stopImmediatePropagation?.()
 }
 
+const shortcutId = (label: string, key: string) => `blockNavigationMode_${label}_${key}`
+
 const _map = (modes: Mode[]): CommandMapper => (key, label, onPress, params = {}) => ({
     type: 'shortcut',
-    id: `blockNavigationMode_${label}`,
+    id: shortcutId(label, key),
     label,
     initValue: key,
     onPress: async event => {

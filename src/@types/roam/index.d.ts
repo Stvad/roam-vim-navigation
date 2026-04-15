@@ -21,4 +21,33 @@ interface RoamAlphaAPI {
 
 interface Window {
     roamAlphaAPI: RoamAlphaAPI
+    RoamToolkitVimPlugin?: {
+        onload: (args: {extensionAPI: RoamExtensionAPI}) => Promise<void>
+        onunload: () => Promise<void>
+    }
+}
+
+interface RoamExtensionAPI {
+    settings: {
+        get(key: string): unknown | Promise<unknown>
+        set(key: string, value: unknown): void | Promise<void>
+        panel: {
+            create(config: {
+                tabTitle: string
+                settings: {
+                    id: string
+                    name: string
+                    description?: string
+                    action: {
+                        type: string
+                        default?: boolean | string
+                        placeholder?: string
+                        content?: string
+                        onChange?: (event: {target: {checked: boolean; value: string}}) => void | Promise<void>
+                        onClick?: () => void | Promise<void>
+                    }
+                }[]
+            }): void
+        }
+    }
 }

@@ -10,6 +10,10 @@ export const injectStyle = (css: string, tagId: string) => {
     document.getElementsByTagName('head')[0].appendChild(style)
 }
 
+export const removeStyle = (tagId: string) => {
+    document.getElementById(tagId)?.remove()
+}
+
 export const toggleCssClass = (element: Element, className: string, toggleOn: boolean) => {
     if (toggleOn) {
         element.classList.add(className)

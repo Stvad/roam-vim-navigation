@@ -7,6 +7,7 @@
         "dev": "cross-env NODE_ENV=development webpack -d",
         "prod": "cross-env NODE_ENV=production webpack -p",
         "watch": "cross-env NODE_ENV=watch webpack -d",
+        "build:vim-plugin": "cross-env NODE_ENV=production webpack --config webpack.plugin.config.js",
         "clean": "rm -rf ./dist",
         "clean:all": "rm -rf ./dist && rm -rf ./coverage && rm -rf ./node_modules",
         "test": "jest",
