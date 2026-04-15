@@ -87,10 +87,12 @@ export const modify = (modifier: (input: number) => number) => {
             node.text.substring(closingBracketsRightIndex(node.text, cursor) + 2)
     } else if (cursorPlacedOnNumber(node.text, cursor)) {
         // e.g. Lorem ipsum [[January 3rd, 2020]] 12|3
-        const left = node.text.substring(0, cursor)?.match(/[0-9]*$/)![0]
-        const right = node.text.substring(cursor)?.match(/^[0-9]*/)![0]
+        const leftMatch = node.text.substring(0, cursor).match(/[0-9]*$/)!
+        const rightMatch = node.text.substring(cursor).match(/^[0-9]*/)!
+        const left = leftMatch[0]
+        const right = rightMatch[0]
         const numberStr = left + right
-        const numberStartedAt = node.text.substring(0, cursor)?.match(/[0-9]*$/)?.index!
+        const numberStartedAt = leftMatch.index!
 
         const newNumber = modifier(parseInt(numberStr, 10))
         newValue =

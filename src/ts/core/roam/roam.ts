@@ -7,20 +7,20 @@ import {Keyboard} from '../common/keyboard'
 import {Mouse} from '../common/mouse'
 import {delay} from 'src/core/common/async'
 
-function setValueOnReactInput(element: HTMLTextAreaElement, value: String) {
-    const getSetter = (element: any) => Object.getOwnPropertyDescriptor(element, 'value')?.set;
+function setValueOnReactInput(element: HTMLTextAreaElement, value: string) {
+    const getSetter = (target: any) => Object.getOwnPropertyDescriptor(target, 'value')?.set
     // roamElement.value = roamNode.text
     // Simulating input on React is fun
     // https://hustle.bizongo.in/simulate-react-on-change-on-controlled-components-baa336920e04
-    const setter = getSetter(element);
+    const setter = getSetter(element)
     // setter?.call(element, value);
 
     const prototypeSetter = getSetter(Object.getPrototypeOf(element))
 
     if (setter !== prototypeSetter) {
-        prototypeSetter!.call(element, value);
+        prototypeSetter!.call(element, value)
     } else {
-        setter!.call(element, value);
+        setter!.call(element, value)
     }
 
     element.dispatchEvent(getInputEvent())
@@ -30,10 +30,9 @@ export const Roam = {
     async save(roamNode: RoamNode): Promise<void> {
         const roamElement = this.getRoamBlockInput()
 
-
         if (roamElement) {
             console.log(`Saving`, roamNode)
-            setValueOnReactInput(roamElement, roamNode.text);
+            setValueOnReactInput(roamElement, roamNode.text)
 
             // Need to select afterwards, otherwise the input event resets the cursor
             await delay(1)

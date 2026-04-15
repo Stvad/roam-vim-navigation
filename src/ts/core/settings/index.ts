@@ -7,7 +7,7 @@ export interface LargeString extends Setting {
     type: 'large_string'
 }
 
-export interface String extends Setting {
+export interface StringSetting extends Setting {
     type: 'string'
 }
 
@@ -62,7 +62,7 @@ export const prepareSettings = (features: Feature[]): Feature[] => {
 
         const initialState: any = initDefaultState(feature)
 
-        let reducers: any = {
+        const reducers: any = {
             [`${feature.id}_toggle`]: (state: any, action: any) => {
                 notifySettingsUpdated()
                 return {...state, active: action.payload}
@@ -95,4 +95,3 @@ const notifySettingsUpdated = () => Browser.sendMessageToActiveTab('settings-upd
 
 const updateSetting = (value: string, featureId: string, settingId: string) =>
     Browser.sendMessageToActiveTab({value, featureId, settingId})
-

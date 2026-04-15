@@ -4,28 +4,27 @@ on: [push, pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [12.x, 13.x]
+        node-version: [16.x, 18.x]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm install
-    - run: npm run dev --if-present
-    - run: npm run build:vim-plugin
-    - run: npm run test:coverage
-      env:
-        CI: true
- 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        name: roam-toolkit
-        path: "dist"
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run dev --if-present
+      - run: npm run build:vim-plugin
+      - run: npm run test:coverage
+        env:
+          CI: true
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: roam-toolkit-node-${{ matrix.node-version }}
+          path: dist

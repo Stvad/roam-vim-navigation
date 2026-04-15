@@ -1,10 +1,10 @@
-import {Feature, Settings, Shortcut, String} from '../settings'
+import {Feature, Settings, Shortcut, StringSetting} from '../settings'
 import {getActiveEditElement} from '../common/dom'
 import {RoamNode} from '../roam/roam-node'
 import {Roam} from '../roam/roam'
-import {Selectors} from '../roam/selectors';
+import {Selectors} from '../roam/selectors'
 
-const estimateProperty: String = {
+const estimateProperty: StringSetting = {
     type: 'string',
     id: 'estimate_property',
     label: 'Property to base estimates on',

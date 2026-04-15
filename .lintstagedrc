@@ -3,6 +3,6 @@
     "prettier --write"
   ],
   "**/*.+(ts|tsx)": [
-    "tslint"
+    "eslint --fix"
   ]
 }
