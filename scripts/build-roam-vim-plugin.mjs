@@ -4,8 +4,10 @@ import path from 'node:path'
 
 const root = process.cwd()
 const extensionJs = path.join(root, 'extension.js')
+const readme = path.join(root, 'README.md')
 const distDir = path.join(root, 'dist')
 const distExtensionJs = path.join(distDir, 'extension.js')
+const distReadme = path.join(distDir, 'README.md')
 
 await rm(extensionJs, {force: true})
 await rm(distDir, {force: true, recursive: true})
@@ -25,3 +27,4 @@ await build({
 })
 
 await copyFile(extensionJs, distExtensionJs)
+await copyFile(readme, distReadme)

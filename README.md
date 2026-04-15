@@ -33,6 +33,7 @@ That generates a direct Roam entry module at:
 
 - `extension.js` – bundled Roam-compatible module at the repo root
 - `dist/extension.js` – copy for hosted installs such as GitHub Pages
+- `dist/README.md` – copied alongside the build to satisfy the Roam extension package contract
 
 `build.sh` runs the same direct build for Roam Depot compatible installs.
 
