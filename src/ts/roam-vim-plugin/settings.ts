@@ -1,8 +1,9 @@
+import React from 'react'
 import {Dictionary} from 'lodash'
 
 import {Shortcut} from 'src/core/features/vim-mode/types'
 
-import {VIM_ENABLED_SETTING, VIM_PLUGIN_NAME} from './constants'
+import {VIM_PLUGIN_NAME} from './constants'
 
 type MaybePromise<T> = T | Promise<T>
 export type KeyboardLayout = 'qwerty' | 'colemak'
@@ -21,13 +22,14 @@ type PanelSetting = {
     name: string
     description?: string
     action: {
+        component?: React.ComponentType
         content?: string
         default?: boolean | string
         items?: string[]
         onChange?: (event: InputChangeEvent | SelectChangeValue) => void | Promise<void>
         onClick?: () => void | Promise<void>
         placeholder?: string
-        type: 'button' | 'input' | 'select' | 'switch'
+        type: 'button' | 'input' | 'reactComponent' | 'select' | 'switch'
     }
 }
 
@@ -49,6 +51,13 @@ export interface RoamExtensionAPI {
 export const VIM_KEYBOARD_LAYOUT_SETTING = 'keyboard-layout'
 
 const DEFAULT_KEYBOARD_LAYOUT: KeyboardLayout = 'qwerty'
+const MODE_ORDER = ['normal', 'visual', 'insert'] as const
+const MODE_GROUP_ORDER = ['normal', 'normal+visual', 'normal+insert', 'normal+visual+insert']
+const MODE_LABELS: Record<typeof MODE_ORDER[number], string> = {
+    normal: 'Normal',
+    visual: 'Visual',
+    insert: 'Insert',
+}
 
 const layoutShortcutDefaults: Record<KeyboardLayout, Record<string, string>> = {
     qwerty: {
@@ -80,10 +89,6 @@ export const initializeSettings = async (extensionAPI: RoamExtensionAPI, shortcu
         await extensionAPI.settings.set(VIM_KEYBOARD_LAYOUT_SETTING, DEFAULT_KEYBOARD_LAYOUT)
     }
 
-    if ((await readSetting<boolean>(extensionAPI, VIM_ENABLED_SETTING)) === undefined) {
-        await extensionAPI.settings.set(VIM_ENABLED_SETTING, false)
-    }
-
     const layout = await getKeyboardLayout(extensionAPI)
 
     for (const shortcut of shortcuts) {
@@ -113,12 +118,9 @@ export const applyKeyboardLayoutPreset = async (
     }
 }
 
-export const isEnabled = async (extensionAPI: RoamExtensionAPI) =>
-    (await readSetting<boolean>(extensionAPI, VIM_ENABLED_SETTING)) ?? false
-
 export const getShortcutValue = async (extensionAPI: RoamExtensionAPI, shortcut: Shortcut) => {
     const value = await readSetting<string>(extensionAPI, shortcut.id)
-    return typeof value === 'string' ? value : shortcut.initValue
+    return typeof value === 'string' ? value : getDefaultShortcutValue(shortcut, await getKeyboardLayout(extensionAPI))
 }
 
 export const getCurrentKeyMap = async (extensionAPI: RoamExtensionAPI, shortcuts: Shortcut[]) => {
@@ -139,6 +141,97 @@ export const getShortcutHandlers = (shortcuts: Shortcut[]) =>
         acc[shortcut.id] = shortcut.onPress
         return acc
     }, {})
+
+const modeSortIndex = (mode: string) => {
+    const index = MODE_ORDER.indexOf(mode as typeof MODE_ORDER[number])
+    return index === -1 ? MODE_ORDER.length : index
+}
+
+const normalizeModeGroup = (shortcut: Shortcut) =>
+    [...new Set(shortcut.modes)].sort((left, right) => modeSortIndex(left) - modeSortIndex(right)).join('+')
+
+const getModeGroupLabel = (group: string) => {
+    if (group === MODE_GROUP_ORDER[MODE_GROUP_ORDER.length - 1]) {
+        return 'All Modes'
+    }
+
+    const labels = group
+        .split('+')
+        .map(mode => MODE_LABELS[mode as keyof typeof MODE_LABELS] ?? mode)
+        .join(' + ')
+
+    return `${labels} ${group.includes('+') ? 'Modes' : 'Mode'}`
+}
+
+const createSectionHeader = (id: string, label: string): PanelSetting => ({
+    id,
+    name: '',
+    action: {
+        type: 'reactComponent',
+        component: () =>
+            React.createElement(
+                'div',
+                {
+                    style: {
+                        borderTop: '1px solid rgba(16, 22, 26, 0.15)',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        marginTop: '8px',
+                        paddingTop: '12px',
+                        textTransform: 'uppercase',
+                    },
+                },
+                label
+            ),
+    },
+})
+
+const getShortcutSettings = (
+    extensionAPI: RoamExtensionAPI,
+    shortcuts: Shortcut[],
+    onSettingsChange: () => Promise<void>
+): PanelSetting[] => {
+    const groupedShortcuts = shortcuts.reduce<Record<string, Shortcut[]>>((acc, shortcut) => {
+        const group = normalizeModeGroup(shortcut)
+        if (!acc[group]) {
+            acc[group] = []
+        }
+        acc[group].push(shortcut)
+        return acc
+    }, {})
+
+    const orderedGroups = [
+        ...MODE_GROUP_ORDER,
+        ...Object.keys(groupedShortcuts)
+            .filter(group => !MODE_GROUP_ORDER.includes(group))
+            .sort(),
+    ]
+
+    return orderedGroups.flatMap(group => {
+        const sectionShortcuts = groupedShortcuts[group]
+        if (!sectionShortcuts?.length) {
+            return []
+        }
+
+        return [
+            createSectionHeader(`section-${group.replace(/\+/g, '-')}`, getModeGroupLabel(group)),
+            ...sectionShortcuts.map<PanelSetting>(shortcut => ({
+                id: shortcut.id,
+                name: shortcut.label,
+                description: `Default: ${shortcut.initValue}`,
+                action: {
+                    type: 'input',
+                    placeholder: shortcut.initValue,
+                    onChange: async event => {
+                        await extensionAPI.settings.set(shortcut.id, (event as InputChangeEvent).target.value)
+                        await onSettingsChange()
+                    },
+                },
+            })),
+        ]
+    })
+}
 
 export const createSettingsPanel = (
     extensionAPI: RoamExtensionAPI,
@@ -165,19 +258,6 @@ export const createSettingsPanel = (
                 },
             },
             {
-                id: VIM_ENABLED_SETTING,
-                name: 'Enable Vim Mode',
-                description: 'Turn the Vim navigation runtime on or off.',
-                action: {
-                    type: 'switch',
-                    default: false,
-                    onChange: async event => {
-                        await extensionAPI.settings.set(VIM_ENABLED_SETTING, (event as InputChangeEvent).target.checked)
-                        await onSettingsChange()
-                    },
-                },
-            },
-            {
                 id: 'reset-shortcuts',
                 name: 'Reset Shortcuts',
                 description: 'Restore every keybinding to its default value.',
@@ -190,19 +270,7 @@ export const createSettingsPanel = (
                     },
                 },
             },
-            ...shortcuts.map<PanelSetting>(shortcut => ({
-                id: shortcut.id,
-                name: shortcut.label,
-                description: `Default: ${shortcut.initValue}`,
-                action: {
-                    type: 'input',
-                    placeholder: shortcut.initValue,
-                    onChange: async event => {
-                        await extensionAPI.settings.set(shortcut.id, (event as InputChangeEvent).target.value)
-                        await onSettingsChange()
-                    },
-                },
-            })),
+            ...getShortcutSettings(extensionAPI, shortcuts, onSettingsChange),
         ],
     }
 

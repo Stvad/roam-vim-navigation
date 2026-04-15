@@ -57,12 +57,14 @@ const consumeKeyboardEvent = (event: KeyboardEvent) => {
 }
 
 const shortcutId = (label: string, key: string) => `blockNavigationMode_${label}_${key}`
+const modeLabel = (mode: Mode) => Mode[mode].toLowerCase()
 
 const _map = (modes: Mode[]): CommandMapper => (key, label, onPress, params = {}) => ({
     type: 'shortcut',
     id: shortcutId(label, key),
     label,
     initValue: key,
+    modes: modes.map(modeLabel),
     onPress: async event => {
         const mode = getMode()
         if (modes.includes(mode)) {

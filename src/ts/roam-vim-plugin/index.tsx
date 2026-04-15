@@ -9,7 +9,6 @@ import {
     getShortcutHandlers,
     getShortcutValue,
     initializeSettings,
-    isEnabled,
     RoamExtensionAPI,
 } from './settings'
 import {isVimModeOn} from 'src/core/features/vim-mode/vim-init'
@@ -67,19 +66,10 @@ const syncPluginState = async () => {
     }
 
     await syncHintKeys()
-
-    if (await isEnabled(extensionAPI)) {
-        await renderHotkeys()
-        if (!isVimModeOn()) {
-            await startVimMode()
-        }
-        return
+    await renderHotkeys()
+    if (!isVimModeOn()) {
+        await startVimMode()
     }
-
-    if (isVimModeOn()) {
-        stopVimMode()
-    }
-    unmountHotkeys()
 }
 
 type OnloadArgs = {

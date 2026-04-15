@@ -3,5 +3,6 @@ export interface Shortcut {
     id: string
     label: string
     initValue: string
+    modes: string[]
     onPress: (event: KeyboardEvent) => Promise<any> | undefined
 }
