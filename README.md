@@ -4,6 +4,10 @@ Standalone [Roam Research](https://roamresearch.com) plugin that extracts the Vi
 
 ![](./media/vim_demo.gif)
 
+## Attribution
+
+Most of the original Vim functionality in Roam Toolkit was developed by Dave Lu (`@tntmarket` on GitHub).
+
 ## What It Includes
 
 - Vim-like block navigation
