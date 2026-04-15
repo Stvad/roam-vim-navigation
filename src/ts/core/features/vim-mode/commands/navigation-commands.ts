@@ -18,8 +18,8 @@ const collapseReferenceView = () => {
 }
 
 export const NavigationCommands = [
-    nvmap('h', 'Select Block Up', () => RoamVim.jumpBlocksInFocusedPanel(-1)),
-    nvmap('k', 'Select Block Down', () => RoamVim.jumpBlocksInFocusedPanel(1)),
+    nvmap('k', 'Select Block Up', () => RoamVim.jumpBlocksInFocusedPanel(-1)),
+    nvmap('j', 'Select Block Down', () => RoamVim.jumpBlocksInFocusedPanel(1)),
     nmap('shift+h', 'Select First Visible Block', () => VimRoamPanel.selected().selectFirstVisibleBlock()),
     nmap('shift+l', 'Select Last Visible Block', () => VimRoamPanel.selected().selectLastVisibleBlock()),
     nmap('g g', 'Select First Block', () => VimRoamPanel.selected().selectFirstBlock()),

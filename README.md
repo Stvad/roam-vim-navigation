@@ -17,6 +17,7 @@ The plugin no longer depends on the extension popup/options UI, background page,
 
 All configuration now lives in Roam's plugin settings panel:
 
+- `Keyboard Layout` switches the layout-sensitive bindings between `qwerty` and `colemak`
 - `Enable Vim Mode` toggles the runtime on and off
 - each shortcut is editable through a Roam settings input
 - `Reset Shortcuts` restores the default keymap

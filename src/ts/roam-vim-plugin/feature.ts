@@ -12,10 +12,6 @@ import {HintCommands} from 'src/core/features/vim-mode/commands/hint-commands'
 import {EditCommands} from 'src/core/features/vim-mode/commands/edit-commands'
 import {Shortcut} from 'src/core/features/vim-mode/types'
 
-export const VIM_PLUGIN_NAME = 'Roam Toolkit Vim Mode'
-export const VIM_PLUGIN_DESCRIPTION = 'Vim-like block navigation and editing shortcuts for Roam Research.'
-export const VIM_ENABLED_SETTING = 'enabled'
-
 export const VIM_SHORTCUTS: Shortcut[] = [
     map('Escape', 'Exit to Normal Mode', returnToNormalMode),
     nmap('z', 'Toggle Fold Block', () => RoamBlock.selected().toggleFold()),

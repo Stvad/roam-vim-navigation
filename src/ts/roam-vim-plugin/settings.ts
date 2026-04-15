@@ -2,9 +2,10 @@ import {Dictionary} from 'lodash'
 
 import {Shortcut} from 'src/core/features/vim-mode/types'
 
-import {VIM_ENABLED_SETTING, VIM_PLUGIN_NAME} from './feature'
+import {VIM_ENABLED_SETTING, VIM_PLUGIN_NAME} from './constants'
 
 type MaybePromise<T> = T | Promise<T>
+export type KeyboardLayout = 'qwerty' | 'colemak'
 
 type InputChangeEvent = {
     target: {
@@ -13,6 +14,8 @@ type InputChangeEvent = {
     }
 }
 
+type SelectChangeValue = string
+
 type PanelSetting = {
     id: string
     name: string
@@ -20,10 +23,11 @@ type PanelSetting = {
     action: {
         content?: string
         default?: boolean | string
-        onChange?: (event: InputChangeEvent) => void | Promise<void>
+        items?: string[]
+        onChange?: (event: InputChangeEvent | SelectChangeValue) => void | Promise<void>
         onClick?: () => void | Promise<void>
         placeholder?: string
-        type: 'button' | 'input' | 'switch'
+        type: 'button' | 'input' | 'select' | 'switch'
     }
 }
 
@@ -42,24 +46,70 @@ export interface RoamExtensionAPI {
     }
 }
 
+export const VIM_KEYBOARD_LAYOUT_SETTING = 'keyboard-layout'
+
+const DEFAULT_KEYBOARD_LAYOUT: KeyboardLayout = 'qwerty'
+
+const layoutShortcutDefaults: Record<KeyboardLayout, Record<string, string>> = {
+    qwerty: {
+        'Select Block Up': 'k',
+        'Select Block Down': 'j',
+        'Select Panel Left': 'h',
+    },
+    colemak: {
+        'Select Block Up': 'h',
+        'Select Block Down': 'k',
+        'Select Panel Left': 'j',
+    },
+}
+
 const readSetting = async <T>(extensionAPI: RoamExtensionAPI, key: string) =>
     (await Promise.resolve(extensionAPI.settings.get(key))) as T | undefined
 
+export const getKeyboardLayout = async (extensionAPI: RoamExtensionAPI) =>
+    (await readSetting<KeyboardLayout>(extensionAPI, VIM_KEYBOARD_LAYOUT_SETTING)) ?? DEFAULT_KEYBOARD_LAYOUT
+
+export const getDefaultShortcutValue = (shortcut: Shortcut, layout: KeyboardLayout = DEFAULT_KEYBOARD_LAYOUT) =>
+    layoutShortcutDefaults[layout][shortcut.label] ?? shortcut.initValue
+
+const isLayoutSensitiveShortcut = (shortcut: Shortcut) =>
+    getDefaultShortcutValue(shortcut, 'qwerty') !== getDefaultShortcutValue(shortcut, 'colemak')
+
 export const initializeSettings = async (extensionAPI: RoamExtensionAPI, shortcuts: Shortcut[]) => {
+    if ((await readSetting<KeyboardLayout>(extensionAPI, VIM_KEYBOARD_LAYOUT_SETTING)) === undefined) {
+        await extensionAPI.settings.set(VIM_KEYBOARD_LAYOUT_SETTING, DEFAULT_KEYBOARD_LAYOUT)
+    }
+
     if ((await readSetting<boolean>(extensionAPI, VIM_ENABLED_SETTING)) === undefined) {
         await extensionAPI.settings.set(VIM_ENABLED_SETTING, false)
     }
 
+    const layout = await getKeyboardLayout(extensionAPI)
+
     for (const shortcut of shortcuts) {
         if ((await readSetting<string>(extensionAPI, shortcut.id)) === undefined) {
-            await extensionAPI.settings.set(shortcut.id, shortcut.initValue)
+            await extensionAPI.settings.set(shortcut.id, getDefaultShortcutValue(shortcut, layout))
         }
     }
 }
 
-export const resetShortcutSettings = async (extensionAPI: RoamExtensionAPI, shortcuts: Shortcut[]) => {
+export const resetShortcutSettings = async (
+    extensionAPI: RoamExtensionAPI,
+    shortcuts: Shortcut[],
+    layout: KeyboardLayout
+) => {
     for (const shortcut of shortcuts) {
-        await extensionAPI.settings.set(shortcut.id, shortcut.initValue)
+        await extensionAPI.settings.set(shortcut.id, getDefaultShortcutValue(shortcut, layout))
+    }
+}
+
+export const applyKeyboardLayoutPreset = async (
+    extensionAPI: RoamExtensionAPI,
+    shortcuts: Shortcut[],
+    layout: KeyboardLayout
+) => {
+    for (const shortcut of shortcuts.filter(isLayoutSensitiveShortcut)) {
+        await extensionAPI.settings.set(shortcut.id, getDefaultShortcutValue(shortcut, layout))
     }
 }
 
@@ -99,6 +149,22 @@ export const createSettingsPanel = (
         tabTitle: VIM_PLUGIN_NAME,
         settings: [
             {
+                id: VIM_KEYBOARD_LAYOUT_SETTING,
+                name: 'Keyboard Layout',
+                description: 'Preset for layout-sensitive navigation bindings.',
+                action: {
+                    type: 'select',
+                    items: ['qwerty', 'colemak'],
+                    default: DEFAULT_KEYBOARD_LAYOUT,
+                    onChange: async value => {
+                        const layout = value as KeyboardLayout
+                        await extensionAPI.settings.set(VIM_KEYBOARD_LAYOUT_SETTING, layout)
+                        await applyKeyboardLayoutPreset(extensionAPI, shortcuts, layout)
+                        await onSettingsChange()
+                    },
+                },
+            },
+            {
                 id: VIM_ENABLED_SETTING,
                 name: 'Enable Vim Mode',
                 description: 'Turn the Vim navigation runtime on or off.',
@@ -106,7 +172,7 @@ export const createSettingsPanel = (
                     type: 'switch',
                     default: false,
                     onChange: async event => {
-                        await extensionAPI.settings.set(VIM_ENABLED_SETTING, event.target.checked)
+                        await extensionAPI.settings.set(VIM_ENABLED_SETTING, (event as InputChangeEvent).target.checked)
                         await onSettingsChange()
                     },
                 },
@@ -119,7 +185,7 @@ export const createSettingsPanel = (
                     type: 'button',
                     content: 'Reset to defaults',
                     onClick: async () => {
-                        await resetShortcutSettings(extensionAPI, shortcuts)
+                        await resetShortcutSettings(extensionAPI, shortcuts, await getKeyboardLayout(extensionAPI))
                         await onSettingsChange()
                     },
                 },
@@ -132,7 +198,7 @@ export const createSettingsPanel = (
                     type: 'input',
                     placeholder: shortcut.initValue,
                     onChange: async event => {
-                        await extensionAPI.settings.set(shortcut.id, event.target.value)
+                        await extensionAPI.settings.set(shortcut.id, (event as InputChangeEvent).target.value)
                         await onSettingsChange()
                     },
                 },

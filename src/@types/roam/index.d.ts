@@ -41,9 +41,12 @@ interface RoamExtensionAPI {
                     action: {
                         type: string
                         default?: boolean | string
+                        items?: string[]
                         placeholder?: string
                         content?: string
-                        onChange?: (event: {target: {checked: boolean; value: string}}) => void | Promise<void>
+                        onChange?:
+                            | ((event: {target: {checked: boolean; value: string}}) => void | Promise<void>)
+                            | ((value: string) => void | Promise<void>)
                         onClick?: () => void | Promise<void>
                     }
                 }[]
