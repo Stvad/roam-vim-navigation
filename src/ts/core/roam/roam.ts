@@ -190,7 +190,7 @@ export const Roam = {
 
         const currentUid = focusedBlock['block-uid']
         if (RoamDb.getChildBlockUids(currentUid).length > 0) {
-            await createEmptyChildBlock(focusedBlock, currentUid)
+            await createEmptyChildBlock(focusedBlock, currentUid, 0)
             return
         }
 

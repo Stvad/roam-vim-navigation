@@ -77,7 +77,7 @@ describe('Roam block creation helpers', () => {
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
     })
 
-    it('creates a child block when the current block already has children', async () => {
+    it('creates the first child block when the current block already has children', async () => {
         getFocusedBlock.mockReturnValue({'block-uid': 'current-block', 'window-id': 'sidebar-window'})
         getChildBlockUids.mockReturnValue(['child-a'])
 
@@ -85,7 +85,7 @@ describe('Roam block creation helpers', () => {
 
         expect(setBlockOpen).toHaveBeenCalledWith('current-block', true)
         expect(createBlock).toHaveBeenCalledWith({
-            location: {parentUid: 'current-block', order: 'last'},
+            location: {parentUid: 'current-block', order: 0},
             block: {uid: 'new-block', string: ''},
         })
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'sidebar-window'}, {start: 0})
