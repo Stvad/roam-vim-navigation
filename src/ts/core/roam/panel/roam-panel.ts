@@ -5,8 +5,6 @@ import {delay} from 'src/core/common/async'
 import {DisconnectFn} from 'src/core/common/event'
 import {toggleCssClass, toggleCssClassForAll} from 'src/core/common/css'
 
-import {GraphVisualization} from 'src/core/features/spatial-mode/graph-visualization'
-
 import {
     getMainPanel,
     namespaceId,
@@ -99,20 +97,13 @@ export const RoamPanel = {
 
     /**
      * Tag the main panel's parent with css, so panel elements can consistently be accessed using the same selector.
-     * Also allows us to apply common styles in spatial graph mode.
      */
     tagPanels() {
-        // Remove panels tags that may be lingering when switching graph mode on/off
-        toggleCssClassForAll(GRAPH_MODE_SCROLL_PANELS, PANEL_CSS_CLASS, !!GraphVisualization.instance)
-        toggleCssClassForAll(DEFAULT_SCROLL_PANELS, PANEL_CSS_CLASS, !GraphVisualization.instance)
+        toggleCssClassForAll(DEFAULT_SCROLL_PANELS, PANEL_CSS_CLASS, true)
     },
 }
 
-// Treat each sidebar as an individual panel in spatial graph mode
-// If we're not in graph mode, then just use the default scroll containers
 const DEFAULT_SCROLL_PANELS = `${Selectors.mainBody} > div:first-child, ${Selectors.sidebarScrollContainer}`
-// Use the innermost div, cause some css themes color them to look like a card
-const GRAPH_MODE_SCROLL_PANELS = `${Selectors.mainContent}, ${Selectors.sidebarPage}`
 
 const getPanelCountDiff = (): PanelToCount => {
     const idToCount = tagAndCountPanels()

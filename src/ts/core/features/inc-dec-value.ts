@@ -1,44 +1,8 @@
-import {Feature, Shortcut} from '../settings'
 import {RoamDate} from '../roam/date'
 import {Roam} from '../roam/roam'
 import {RoamNode, Selection} from '../roam/roam-node'
 
 export const createModifier = (change: number) => (num: number) => num + change
-
-export const config: Feature = {
-    id: 'incDec',
-    name: 'Increase / Decrease value or date',
-    settings: [
-        {
-            type: 'shortcut',
-            id: 'incShortcut',
-            label: 'Increase date or number by 1',
-            initValue: 'Ctrl+Alt+ArrowUp',
-            onPress: () => modify(createModifier(1)),
-        } as Shortcut,
-        {
-            type: 'shortcut',
-            id: 'decShortcut',
-            label: 'Decrease date or number by 1',
-            initValue: 'Ctrl+Alt+ArrowDown',
-            onPress: () => modify(createModifier(-1)),
-        } as Shortcut,
-        {
-            type: 'shortcut',
-            id: 'incWeekShortcut',
-            label: 'Increase date or number by 7',
-            initValue: 'Ctrl+Shift+ArrowUp',
-            onPress: () => modify(createModifier(7)),
-        } as Shortcut,
-        {
-            type: 'shortcut',
-            id: 'decWeekShortcut',
-            label: 'Decrease date or number by 7',
-            initValue: 'Ctrl+Shift+ArrowDown',
-            onPress: () => modify(createModifier(-7)),
-        } as Shortcut,
-    ],
-}
 
 const openBracketsLeftIndex = (text: string, cursor: number): number => text.substring(0, cursor).lastIndexOf('[[')
 

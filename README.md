@@ -30,7 +30,7 @@ All configuration now lives in Roam's plugin settings panel:
 
 ```bash
 npm install
-npm run build:vim-plugin
+npm run build
 ```
 
 That generates a direct Roam entry module at:
@@ -45,4 +45,4 @@ That generates a direct Roam entry module at:
 
 - The standalone plugin entry lives in `src/ts/roam-vim-plugin/`
 - The Vim runtime is still reused from `src/ts/core/features/vim-mode/`
-- CI and GitHub Pages now build the direct `extension.js` artifact instead of the old extension bundle
+- CI and GitHub Pages lint, typecheck, test, and build the direct `extension.js` artifact instead of the old extension bundle

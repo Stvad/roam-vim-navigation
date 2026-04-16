@@ -11,15 +11,12 @@ export const RoamDb = {
     },
 
     query(query: string, ...params: any[]) {
-        console.log('Executing Roam DB query', query)
-        console.log('Query params', params)
-
         return runInPageContext((q: string, ...p: any[]) => window.roamAlphaAPI.q(q, ...p), query, ...params)
     },
 
     queryFirst(query: string, ...params: any[]) {
         const results = this.query(query, ...params)
-        if (!results?.[0] || results?.[0].lenght < 1) return null
+        if (!results?.[0] || results?.[0].length < 1) return null
 
         return this.getBlockById(results[0][0])
     },

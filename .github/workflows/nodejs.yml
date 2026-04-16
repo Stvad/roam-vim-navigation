@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [18.x, 20.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -18,13 +18,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
       - run: npm run lint
-      - run: npm run dev --if-present
-      - run: npm run build:vim-plugin
+      - run: npm run typecheck
+      - run: npm run build
       - run: npm run test:coverage
         env:
           CI: true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: roam-toolkit-node-${{ matrix.node-version }}
+          name: roam-vim-navigation-node-${{ matrix.node-version }}
           path: dist

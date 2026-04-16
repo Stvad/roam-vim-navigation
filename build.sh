@@ -2,4 +2,4 @@
 set -euo pipefail
 
 npm install
-npm run build:vim-plugin
+npm run build
