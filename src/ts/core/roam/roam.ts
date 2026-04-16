@@ -50,6 +50,11 @@ const createEmptyBlockAt = async (location: RoamBlockLocation, parentUid: string
     return newUid
 }
 
+const createEmptyChildBlock = async (location: RoamBlockLocation, parentUid: string, order: 0 | 'last' = 'last') => {
+    await RoamDb.setBlockOpen(parentUid, true)
+    return createEmptyBlockAt(location, parentUid, order)
+}
+
 export const Roam = {
     async save(roamNode: RoamNode): Promise<void> {
         const roamElement = this.getRoamBlockInput()
@@ -184,6 +189,11 @@ export const Roam = {
         if (!focusedBlock) return
 
         const currentUid = focusedBlock['block-uid']
+        if (RoamDb.getChildBlockUids(currentUid).length > 0) {
+            await createEmptyChildBlock(focusedBlock, currentUid)
+            return
+        }
+
         const parentUid = RoamDb.getParentBlockUid(currentUid)
         const order = RoamDb.getBlockOrder(currentUid)
         if (!parentUid || order === null) return
@@ -192,7 +202,15 @@ export const Roam = {
     },
 
     async createSiblingBelow() {
-        await this.createBlockBelow()
+        const focusedBlock = focusedBlockLocation()
+        if (!focusedBlock) return
+
+        const currentUid = focusedBlock['block-uid']
+        const parentUid = RoamDb.getParentBlockUid(currentUid)
+        const order = RoamDb.getBlockOrder(currentUid)
+        if (!parentUid || order === null) return
+
+        await createEmptyBlockAt(focusedBlock, parentUid, order + 1)
     },
 
     async createFirstChild() {
@@ -200,8 +218,7 @@ export const Roam = {
         if (!focusedBlock) return
 
         const currentUid = focusedBlock['block-uid']
-        await RoamDb.setBlockOpen(currentUid, true)
-        await createEmptyBlockAt(focusedBlock, currentUid, 0)
+        await createEmptyChildBlock(focusedBlock, currentUid, 0)
     },
 
     async createLastChild() {
@@ -209,8 +226,7 @@ export const Roam = {
         if (!focusedBlock) return
 
         const currentUid = focusedBlock['block-uid']
-        await RoamDb.setBlockOpen(currentUid, true)
-        await createEmptyBlockAt(focusedBlock, currentUid, 'last')
+        await createEmptyChildBlock(focusedBlock, currentUid)
     },
 
     async createDeepestLastDescendant() {
