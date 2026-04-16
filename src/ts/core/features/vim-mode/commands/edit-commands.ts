@@ -62,6 +62,6 @@ export const EditCommands = [
     ),
     nmap('ctrl+alt+up', 'Increment Date', () => modifyBlockDate(createModifier(1))),
     nmap('ctrl+alt+down', 'Decrement Date', () => modifyBlockDate(createModifier(-1))),
-    nmap('ctrl+shift+right', 'Increment Date by a week', () => modifyBlockDate(createModifier(7))),
-    nmap('ctrl+shift+left', 'Decrement Date by a week', () => modifyBlockDate(createModifier(-7))),
+    nmap('ctrl+shift+up', 'Increment Date by a week', () => modifyBlockDate(createModifier(7))),
+    nmap('ctrl+shift+down', 'Decrement Date by a week', () => modifyBlockDate(createModifier(-7))),
 ]
