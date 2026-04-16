@@ -8,6 +8,7 @@ const readme = path.join(root, 'README.md')
 const distDir = path.join(root, 'dist')
 const distExtensionJs = path.join(distDir, 'extension.js')
 const distReadme = path.join(distDir, 'README.md')
+const roamRuntimeDependencies = ['react', 'react-dom']
 
 await rm(extensionJs, {force: true})
 await rm(distDir, {force: true, recursive: true})
@@ -17,6 +18,7 @@ await build({
     absWorkingDir: root,
     bundle: true,
     entryPoints: ['src/ts/roam-vim-plugin/index.tsx'],
+    external: roamRuntimeDependencies,
     format: 'esm',
     minify: false,
     outfile: extensionJs,
