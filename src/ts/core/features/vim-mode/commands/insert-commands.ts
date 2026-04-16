@@ -7,13 +7,11 @@ export const insertBlockAfter = async () => {
 }
 
 const editBlock = async () => {
-    await Roam.activateBlock(RoamBlock.selected().element)
-    await Roam.moveCursorToStart()
+    Roam.focusBlockAtStart(RoamBlock.selected().element)
 }
 
 const editBlockFromEnd = async () => {
-    await Roam.activateBlock(RoamBlock.selected().element)
-    await Roam.moveCursorToEnd()
+    Roam.focusBlockAtEnd(RoamBlock.selected().element)
 }
 
 const insertBlockBefore = async () => {

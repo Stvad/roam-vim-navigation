@@ -43,6 +43,7 @@ import {Roam} from 'src/core/roam/roam'
 describe('Roam block creation helpers', () => {
     const createBlock = RoamDb.createBlock as jest.MockedFunction<typeof RoamDb.createBlock>
     const focusBlock = RoamDb.focusBlock as jest.MockedFunction<typeof RoamDb.focusBlock>
+    const getBlockByUid = RoamDb.getBlockByUid as jest.MockedFunction<typeof RoamDb.getBlockByUid>
     const getBlockLocationForElement = RoamDb.getBlockLocationForElement as jest.MockedFunction<
         typeof RoamDb.getBlockLocationForElement
     >
@@ -58,6 +59,7 @@ describe('Roam block creation helpers', () => {
         createBlock.mockResolvedValue(undefined)
         setBlockOpen.mockResolvedValue(undefined)
         generateUID.mockReturnValue('new-block')
+        getBlockByUid.mockReturnValue({':block/string': ''})
         getBlockLocationForElement.mockReturnValue(null)
         window.roamAlphaAPI = ({
             util: {
@@ -129,5 +131,30 @@ describe('Roam block creation helpers', () => {
             block: {uid: 'new-block', string: ''},
         })
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
+    })
+
+    it('focuses a selected block at the start without clicking it first', () => {
+        const target = document.createElement('div')
+        target.id = 'block-def456uvw'
+
+        getBlockLocationForElement.mockReturnValue({'block-uid': 'def456uvw', 'window-id': 'sidebar-window'})
+
+        Roam.focusBlockAtStart(target)
+
+        expect(getBlockLocationForElement).toHaveBeenCalledWith(target)
+        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'def456uvw', 'window-id': 'sidebar-window'}, {start: 0})
+    })
+
+    it('focuses a selected block at the end using its current text length', () => {
+        const target = document.createElement('div')
+        target.id = 'block-def456uvw'
+
+        getBlockLocationForElement.mockReturnValue({'block-uid': 'def456uvw', 'window-id': 'main-window'})
+        getBlockByUid.mockReturnValue({':block/string': 'hello'})
+
+        Roam.focusBlockAtEnd(target)
+
+        expect(getBlockByUid).toHaveBeenCalledWith('def456uvw')
+        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'def456uvw', 'window-id': 'main-window'}, {start: 5})
     })
 })

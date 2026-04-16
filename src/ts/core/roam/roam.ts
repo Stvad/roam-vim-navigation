@@ -32,8 +32,8 @@ const selectionParams = (selection: Selection) =>
 const focusedBlockLocation = (): RoamBlockLocation | null => RoamDb.getFocusedBlock()
 const blockLocation = (targetBlock?: HTMLElement): RoamBlockLocation | null =>
     targetBlock ? RoamDb.getBlockLocationForElement(targetBlock) : focusedBlockLocation()
-const blockHasText = (block: HTMLElement): boolean =>
-    Boolean(RoamDb.getBlockByUid(getBlockUid(block.id))?.[':block/string'])
+const blockText = (block: HTMLElement): string => RoamDb.getBlockByUid(getBlockUid(block.id))?.[':block/string'] || ''
+const blockHasText = (block: HTMLElement): boolean => Boolean(blockText(block))
 
 const focusSelection = (selection: Selection) => {
     const focusedBlock = focusedBlockLocation()
@@ -164,6 +164,21 @@ export const Roam = {
         }
 
         focusSelection(updatedNode.selection)
+    },
+
+    focusBlockSelection(targetBlock: HTMLElement, selection?: {start: number; end?: number}) {
+        const location = blockLocation(targetBlock)
+        if (!location) return
+
+        RoamDb.focusBlock(location, selection)
+    },
+
+    focusBlockAtStart(targetBlock: HTMLElement) {
+        this.focusBlockSelection(targetBlock, {start: 0})
+    },
+
+    focusBlockAtEnd(targetBlock: HTMLElement) {
+        this.focusBlockSelection(targetBlock, {start: blockText(targetBlock).length})
     },
 
     writeText(text: string) {
