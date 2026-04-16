@@ -1,6 +1,5 @@
 import {Roam} from 'src/core/roam/roam'
 import {nmap} from 'src/core/features/vim-mode/vim'
-import {Keyboard} from 'src/core/common/keyboard'
 import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
 
 export const insertBlockAfter = async () => {
@@ -20,8 +19,7 @@ const editBlockFromEnd = async () => {
 
 const insertBlockBefore = async () => {
     await Roam.activateBlock(RoamBlock.selected().element)
-    await Roam.moveCursorToStart()
-    await Keyboard.pressEnter()
+    await Roam.createSiblingAbove()
 }
 
 export const InsertCommands = [

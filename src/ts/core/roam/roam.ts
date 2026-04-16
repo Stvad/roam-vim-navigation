@@ -1,11 +1,11 @@
-import {Selectors} from 'src/core/roam/selectors'
-import {assumeExists} from 'src/core/common/assert'
+import {getBlockUid} from 'src/core/roam/block'
 
 import {RoamNode, Selection} from './roam-node'
 import {getActiveEditElement, getFirstTopLevelBlock, getInputEvent, getLastTopLevelBlock} from '../common/dom'
 import {Keyboard} from '../common/keyboard'
 import {Mouse} from '../common/mouse'
 import {delay} from 'src/core/common/async'
+import {RoamBlockLocation, RoamDb} from './roam-db'
 
 function setValueOnReactInput(element: HTMLTextAreaElement, value: string) {
     const getSetter = (target: any) => Object.getOwnPropertyDescriptor(target, 'value')?.set
@@ -24,6 +24,30 @@ function setValueOnReactInput(element: HTMLTextAreaElement, value: string) {
     }
 
     element.dispatchEvent(getInputEvent())
+}
+
+const selectionParams = (selection: Selection) =>
+    selection.start === selection.end ? {start: selection.start} : {start: selection.start, end: selection.end}
+
+const focusedBlockLocation = (): RoamBlockLocation | null => RoamDb.getFocusedBlock()
+
+const focusSelection = (selection: Selection) => {
+    const focusedBlock = focusedBlockLocation()
+    if (!focusedBlock || selection.start < 0) {
+        return
+    }
+
+    RoamDb.focusBlock(focusedBlock, selectionParams(selection))
+}
+
+const createEmptyBlockAt = async (location: RoamBlockLocation, parentUid: string, order: number | 'last') => {
+    const newUid = window.roamAlphaAPI.util.generateUID()
+    await RoamDb.createBlock({
+        location: {parentUid, order},
+        block: {uid: newUid, string: ''},
+    })
+    RoamDb.focusBlock({...location, 'block-uid': newUid}, {start: 0})
+    return newUid
 }
 
 export const Roam = {
@@ -81,7 +105,18 @@ export const Roam = {
     },
 
     async deleteBlock() {
-        return this.highlight().then(() => Keyboard.pressBackspace())
+        const focusedBlock = focusedBlockLocation()
+        if (focusedBlock) {
+            return RoamDb.deleteBlock(focusedBlock['block-uid'])
+        }
+
+        await this.highlight()
+        const highlightedBlock = focusedBlockLocation()
+        if (!highlightedBlock) {
+            return
+        }
+
+        return RoamDb.deleteBlock(highlightedBlock['block-uid'])
     },
 
     async copyBlock() {
@@ -97,15 +132,29 @@ export const Roam = {
     },
 
     async moveCursorToStart() {
-        await this.applyToCurrent(node => node.withCursorAtTheStart())
+        const node = this.getActiveRoamNode()
+        if (!node) return
+
+        focusSelection(node.withCursorAtTheStart().selection)
     },
 
     async moveCursorToEnd() {
-        await this.applyToCurrent(node => node.withCursorAtTheEnd())
+        const node = this.getActiveRoamNode()
+        if (!node) return
+
+        focusSelection(node.withCursorAtTheEnd().selection)
     },
 
     async moveCursorToSearchTerm(searchTerm: string) {
-        await this.applyToCurrent(node => node.withCursorAtSearchTerm(searchTerm))
+        const node = this.getActiveRoamNode()
+        if (!node) return
+
+        const updatedNode = node.withCursorAtSearchTerm(searchTerm)
+        if (updatedNode.selection.start < 0) {
+            return
+        }
+
+        focusSelection(updatedNode.selection)
     },
 
     writeText(text: string) {
@@ -119,33 +168,49 @@ export const Roam = {
     },
 
     async createSiblingAbove() {
-        await this.moveCursorToStart()
-        const isEmpty = !this.getActiveRoamNode()?.text
-        await Keyboard.pressEnter()
-        if (isEmpty) {
-            await Keyboard.simulateKey(Keyboard.UP_ARROW)
-        }
+        const focusedBlock = focusedBlockLocation()
+        if (!focusedBlock) return
+
+        const currentUid = focusedBlock['block-uid']
+        const parentUid = RoamDb.getParentBlockUid(currentUid)
+        const order = RoamDb.getBlockOrder(currentUid)
+        if (!parentUid || order === null) return
+
+        await createEmptyBlockAt(focusedBlock, parentUid, order)
     },
 
     async createBlockBelow() {
-        await this.moveCursorToEnd()
-        await Keyboard.pressEnter()
+        const focusedBlock = focusedBlockLocation()
+        if (!focusedBlock) return
+
+        const currentUid = focusedBlock['block-uid']
+        const parentUid = RoamDb.getParentBlockUid(currentUid)
+        const order = RoamDb.getBlockOrder(currentUid)
+        if (!parentUid || order === null) return
+
+        await createEmptyBlockAt(focusedBlock, parentUid, order + 1)
     },
 
     async createSiblingBelow() {
         await this.createBlockBelow()
-        await Keyboard.pressShiftTab(Keyboard.BASE_DELAY)
     },
 
     async createFirstChild() {
-        await this.moveCursorToEnd()
-        await Keyboard.pressEnter()
-        await Keyboard.pressTab()
+        const focusedBlock = focusedBlockLocation()
+        if (!focusedBlock) return
+
+        const currentUid = focusedBlock['block-uid']
+        await RoamDb.setBlockOpen(currentUid, true)
+        await createEmptyBlockAt(focusedBlock, currentUid, 0)
     },
 
     async createLastChild() {
-        await this.createSiblingBelow()
-        await Keyboard.pressTab()
+        const focusedBlock = focusedBlockLocation()
+        if (!focusedBlock) return
+
+        const currentUid = focusedBlock['block-uid']
+        await RoamDb.setBlockOpen(currentUid, true)
+        await createEmptyBlockAt(focusedBlock, currentUid, 'last')
     },
 
     async createDeepestLastDescendant() {
@@ -169,16 +234,8 @@ export const Roam = {
     },
 
     async toggleFoldBlock(block: HTMLElement) {
-        const foldButton = nearestFoldButton(block)
-        await Mouse.hover(foldButton)
-        await Mouse.leftClick(foldButton)
+        const uid = getBlockUid(block.id)
+        const isOpen = RoamDb.getBlockByUid(uid)?.[':block/open'] !== false
+        await RoamDb.setBlockOpen(uid, !isOpen)
     },
-}
-
-const nearestFoldButton = (element: HTMLElement): HTMLElement => {
-    const foldButton = element.querySelector(Selectors.foldButton) as HTMLElement
-    if (foldButton) {
-        return foldButton
-    }
-    return nearestFoldButton(assumeExists(element.parentElement))
 }

@@ -1,33 +1,53 @@
 import {nimap, nmap} from 'src/core/features/vim-mode/vim'
-import {Keyboard} from 'src/core/common/keyboard'
 import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
 import {getBlockUid} from 'src/core/roam/block'
 import {RoamDb} from 'src/core/roam/roam-db'
 import {Selectors} from 'src/core/roam/selectors'
 import {VimRoamPanel} from 'src/core/features/vim-mode/roam/roam-vim-panel'
+import {Roam} from 'src/core/roam/roam'
 
-const moveBlockUp = async () => {
-    RoamBlock.selected().edit()
-    await Keyboard.simulateKey(Keyboard.UP_ARROW, 0, {metaKey: true, shiftKey: true})
+const selectionParams = (start: number, end: number) => (start === end ? {start} : {start, end})
+
+const moveSelectedBlock = async (offset: number) => {
+    const uid = getBlockUid(RoamBlock.selected().id)
+    const parentUid = RoamDb.getParentBlockUid(uid)
+    const order = RoamDb.getBlockOrder(uid)
+    if (!parentUid || order === null) return
+
+    const siblings = RoamDb.getChildBlockUids(parentUid)
+    const targetOrder = order + offset
+    if (targetOrder < 0 || targetOrder >= siblings.length) return
+
+    const focusedBlock = RoamDb.getFocusedBlock()
+    const activeNode = focusedBlock?.['block-uid'] === uid ? Roam.getActiveRoamNode() : null
+
+    await RoamDb.moveBlock({uid, parentUid, order: targetOrder})
+
+    if (focusedBlock?.['block-uid'] === uid && activeNode) {
+        RoamDb.focusBlock(
+            {...focusedBlock, 'block-uid': uid},
+            selectionParams(activeNode.selection.start, activeNode.selection.end)
+        )
+    }
 }
 
-const moveBlockDown = async () => {
-    RoamBlock.selected().edit()
-    await Keyboard.simulateKey(Keyboard.DOWN_ARROW, 0, {metaKey: true, shiftKey: true})
-}
+const moveBlockUp = () => moveSelectedBlock(-1)
 
-const collapseIntoParent = () => {
+const moveBlockDown = () => moveSelectedBlock(1)
+
+const collapseIntoParent = async () => {
     const selected = RoamBlock.selected()
     const uid = getBlockUid(selected.id)
     const parentUid = RoamDb.getParentBlockUid(uid)
     if (!parentUid) return
 
-    RoamDb.setBlockOpen(parentUid, false)
-
     const parentBlock = document.querySelector(`${Selectors.block}[id$="${parentUid}"]`) as HTMLElement
-    if (parentBlock) {
-        VimRoamPanel.selected().selectBlock(parentBlock.id)
+    if (!parentBlock) {
+        return
     }
+
+    await RoamDb.setBlockOpen(parentUid, false)
+    VimRoamPanel.selected().selectBlock(parentBlock.id)
 }
 
 export const BlockManipulationCommands = [

@@ -18,14 +18,13 @@ function selectedUid() {
     return getBlockUid(htmlId)
 }
 
-const rescheduleSelectedNote = (signal: SRSSignal) => {
-    console.log('rescheduleSelectedNote', signal)
+const rescheduleSelectedNote = async (signal: SRSSignal) => {
     const uid = selectedUid()
     const originalText = getBlockText(uid)
-    RoamDb.updateBlockText(uid, new AnkiScheduler().schedule(new SM2Node(originalText), signal).text + ' *')
+    await RoamDb.updateBlockText(uid, new AnkiScheduler().schedule(new SM2Node(originalText), signal).text + ' *')
 }
 
-const toggleDone = () => {
+const toggleDone = async () => {
     const uid = selectedUid()
     const originalText = getBlockText(uid)
     let newText = originalText
@@ -37,17 +36,17 @@ const toggleDone = () => {
         newText = '{{[[DONE]]}} ' + originalText
     }
 
-    RoamDb.updateBlockText(uid, newText)
+    await RoamDb.updateBlockText(uid, newText)
 }
 
-const modifyBlockDate = (modifier: (input: number) => number) => {
+const modifyBlockDate = async (modifier: (input: number) => number) => {
     const uid = selectedUid()
     const originalText = getBlockText(uid)
 
     const datesInContent = originalText.match(RoamDate.regex)
     if (!datesInContent || datesInContent.length !== 1) return
 
-    RoamDb.updateBlockText(
+    await RoamDb.updateBlockText(
         uid,
         originalText.replace(
             datesInContent[0],

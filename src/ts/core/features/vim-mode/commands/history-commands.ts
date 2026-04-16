@@ -1,14 +1,13 @@
 import {nmap, returnToNormalMode} from 'src/core/features/vim-mode/vim'
-import {Keyboard} from 'src/core/common/keyboard'
-import {KEY_TO_CODE} from 'src/core/common/keycodes'
+import {RoamDb} from 'src/core/roam/roam-db'
 
 const undo = async () => {
-    await Keyboard.simulateKey(KEY_TO_CODE['z'], 0, {key: 'z', metaKey: true})
+    await RoamDb.undo()
     await returnToNormalMode()
 }
 
 const redo = async () => {
-    await Keyboard.simulateKey(KEY_TO_CODE['z'], 0, {key: 'z', shiftKey: true, metaKey: true})
+    await RoamDb.redo()
     await returnToNormalMode()
 }
 

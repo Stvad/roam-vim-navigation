@@ -1,21 +1,58 @@
 interface RoamAlphaAPI {
-    q(query: string, ...params: any[]): any[][]
-    pull(pattern: string, id: number | [string, string]): Record<string, any>
-    updateBlock(params: {block: {uid: string; string?: string; open?: boolean}}): void
-    createBlock(params: {location: {parentUid: string; order: number}; block: {string: string}}): void
-    deleteBlock(params: {block: {uid: string}}): void
-    moveBlock(params: {location: {parentUid: string; order: number}; block: {uid: string}}): void
+    data: {
+        q(query: string, ...params: any[]): any
+        pull(pattern: string, id: number | [string, string]): any
+        undo(): Promise<void>
+        redo(): Promise<void>
+        block: {
+            create(params: {
+                location: {'parent-uid': string; order: number | 'first' | 'last'}
+                block: {
+                    uid?: string
+                    string: string
+                    open?: boolean
+                    heading?: number
+                    'text-align'?: string
+                    'children-view-type'?: string
+                    'block-view-type'?: string
+                }
+            }): Promise<void>
+            update(params: {
+                block: {
+                    uid: string
+                    string?: string
+                    open?: boolean
+                    heading?: number
+                    'text-align'?: string
+                    'children-view-type'?: string
+                    'block-view-type'?: string
+                }
+            }): Promise<void>
+            move(params: {location: {'parent-uid': string; order: number}; block: {uid: string}}): Promise<void>
+            delete(params: {block: {uid: string}}): Promise<void>
+            reorderBlocks(params: {location: {'parent-uid': string}; blocks: string[]}): Promise<void>
+        }
+    }
 
     ui: {
-        getFocusedBlock(): {'block-uid': string} | null
-        setBlockFocusAndContext(params: {location: {'block-uid': string; 'window-id': string}}): void
+        getFocusedBlock(): {'block-uid': string; 'window-id': string} | null
+        setBlockFocusAndSelection(params: {
+            location: {'block-uid': string; 'window-id': string}
+            selection?: {start: number; end?: number}
+        }): void
         mainWindow: {
+            focusFirstBlock(): void
             openBlock(params: {block: {uid: string}}): void
             openPage(params: {page: {uid: string}}): void
         }
         rightSidebar: {
+            getWindows(): Array<Record<string, unknown>>
             addWindow(params: {window: {type: string; 'block-uid': string}}): void
         }
+    }
+
+    util: {
+        generateUID(): string
     }
 }
 
