@@ -4,5 +4,6 @@ export interface Shortcut {
     label: string
     initValue: string
     modes: string[]
+    consumeEvent?: boolean
     onPress: (event: KeyboardEvent) => Promise<any> | undefined
 }

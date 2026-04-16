@@ -12,6 +12,7 @@ import {KeySequenceString} from './key-sequence'
 const NATIVE_HOTKEYS_TO_IGNORE: KeySequenceString[] = [
     'command+a',
     'command+c',
+    'command+h',
     'command+q',
     'command+r',
     'command+u',

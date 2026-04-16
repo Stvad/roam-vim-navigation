@@ -2,15 +2,47 @@ import {KeyChord, KeyChordString} from 'src/core/react-hotkeys/key-chord'
 import {KeySequence, KeySequenceString} from 'src/core/react-hotkeys/key-sequence'
 import {blockConcurrentHandlingOfSimulatedKeys, Handler} from 'src/core/react-hotkeys/key-handler'
 import {delay} from 'src/core/common/async'
+import {
+    createSingleChordCaptureBindings,
+    keyChordFromEvent,
+    normalizeKeySequence,
+} from 'src/core/react-hotkeys/capture-hotkeys'
 
 jest.mock('src/core/react-hotkeys/key-history')
 
 describe('Normalizing key chords to have a consistent format', () => {
-    const normalizeChord = (keyChordString: KeyChordString) =>
-        KeyChord.fromString(keyChordString).toString()
+    const normalizeChord = (keyChordString: KeyChordString) => KeyChord.fromString(keyChordString).toString()
 
     it('Lower cases the letter and adds shift', () => {
         expect(normalizeChord('sHiFt+g')).toEqual('shift+g')
+    })
+
+    it('normalizes command aliases and modifier order for capture bindings', () => {
+        expect(normalizeKeySequence('Shift+cmd+H')).toEqual('command+shift+h')
+    })
+})
+
+describe('Capture phase hotkeys', () => {
+    it('matches an exact command+shift+h keydown without matching command+h', () => {
+        const commandShiftHHandler = jest.fn()
+        const captureBindings = createSingleChordCaptureBindings(
+            {MOVE_BLOCK_UP: 'command+shift+h'},
+            {MOVE_BLOCK_UP: commandShiftHHandler}
+        )
+
+        const commandShiftHEvent = ({
+            key: 'H',
+            metaKey: true,
+            shiftKey: true,
+        } as unknown) as KeyboardEvent
+        const commandHEvent = ({
+            key: 'h',
+            metaKey: true,
+            shiftKey: false,
+        } as unknown) as KeyboardEvent
+
+        expect(captureBindings[keyChordFromEvent(commandShiftHEvent) ?? '']).toBe(commandShiftHHandler)
+        expect(captureBindings[keyChordFromEvent(commandHEvent) ?? '']).toBeUndefined()
     })
 })
 
@@ -41,7 +73,7 @@ describe('Not recursively triggering our own hotkeys when simulating keys for na
         expect(ourCustomEscapeHotkey).not.toHaveBeenCalled()
     })
 
-    it("allows keys that aren't simulated to run while other hotkeys are running",async () => {
+    it("allows keys that aren't simulated to run while other hotkeys are running", async () => {
         const ourCustomHotkey = jest.fn()
         const handler = adaptHandler('J', async () => {
             await delay(1)

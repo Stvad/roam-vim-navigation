@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import {pick} from 'lodash'
 
 import {ReactHotkeys} from 'src/core/react-hotkeys'
 import {getPrimaryHintShortcut, startVimMode, stopVimMode, VIM_SHORTCUTS} from './feature'
@@ -56,8 +57,25 @@ const renderHotkeys = async () => {
     ensureShortcutContainer()
     const keyMap = await getCurrentKeyMap(extensionAPI, VIM_SHORTCUTS)
     const handlers = getShortcutHandlers(VIM_SHORTCUTS)
+    const capturedShortcuts = VIM_SHORTCUTS.filter(shortcut => shortcut.consumeEvent)
+    const captureKeyMap = pick(
+        keyMap,
+        capturedShortcuts.map(shortcut => shortcut.id)
+    )
+    const captureHandlers = pick(
+        handlers,
+        capturedShortcuts.map(shortcut => shortcut.id)
+    )
 
-    ReactDOM.render(<ReactHotkeys keyMap={keyMap} handlers={handlers} />, shortcutContainer)
+    ReactDOM.render(
+        <ReactHotkeys
+            keyMap={keyMap}
+            handlers={handlers}
+            captureKeyMap={captureKeyMap}
+            captureHandlers={captureHandlers}
+        />,
+        shortcutContainer
+    )
 }
 
 const syncPluginState = async () => {

@@ -1,6 +1,6 @@
 import React from 'react'
 import {configure} from 'react-hotkeys'
-import {Dictionary, mapValues, pickBy} from 'lodash'
+import {Dictionary, mapValues} from 'lodash'
 
 import {CODE_TO_KEY} from 'src/core/common/keycodes'
 
@@ -9,6 +9,7 @@ import {GlobalHotKeysWithoutConflictingWithNativeHotkeys} from './dont-override-
 import {KeySequence, KeySequenceString} from 'src/core/react-hotkeys/key-sequence'
 import {zipObjects} from 'src/core/common/object'
 import {clearKeyPressesAfterFinishingKeySequence} from 'src/core/react-hotkeys/key-history'
+import {createSingleChordCaptureBindings, keyChordFromEvent, normalizeKeySequence} from './capture-hotkeys'
 
 configure({
     ignoreTags: [],
@@ -53,6 +54,8 @@ configure({
 type Props = {
     keyMap: Dictionary<KeySequenceString>
     handlers: Dictionary<Handler>
+    captureKeyMap?: Dictionary<KeySequenceString>
+    captureHandlers?: Dictionary<Handler>
 }
 
 /**
@@ -64,7 +67,7 @@ type Props = {
  * See https://github.com/roam-unofficial/roam-toolkit/issues/68
  * for discussion around alternatives to react-hotkeys.
  */
-export const ReactHotkeys = ({keyMap, handlers}: Props) => {
+export const ReactHotkeys = ({keyMap, handlers, captureKeyMap = {}, captureHandlers = {}}: Props) => {
     /**
      * Key sequences like 'g g' mess up the other shortcuts
      * See https://github.com/greena13/react-hotkeys/issues/229
@@ -78,8 +81,38 @@ export const ReactHotkeys = ({keyMap, handlers}: Props) => {
         ([keySequenceString, handler]): Hotkey => [KeySequence.fromString(keySequenceString), handler]
     )
 
-    const singleChordHotkeys = pickBy(hotkeys, usesOneKeyChord)
-    const multiChordHotkeys = pickBy(hotkeys, usesMultipleKeyChords)
+    const captureBindings = React.useMemo(() => createSingleChordCaptureBindings(captureKeyMap, captureHandlers), [
+        captureHandlers,
+        captureKeyMap,
+    ])
+    const capturedHotkeyIds = React.useMemo(
+        () =>
+            Object.keys(captureKeyMap).filter(id => {
+                const keySequence = captureKeyMap[id]
+                return !!captureHandlers[id] && !!keySequence && !normalizeKeySequence(keySequence).includes(' ')
+            }),
+        [captureHandlers, captureKeyMap]
+    )
+
+    React.useEffect(() => {
+        if (Object.keys(captureBindings).length === 0) {
+            return
+        }
+
+        const onKeyDownCapture = (event: KeyboardEvent) => {
+            const handler = captureBindings[keyChordFromEvent(event) ?? '']
+            if (handler) {
+                void handler(event)
+            }
+        }
+
+        window.addEventListener('keydown', onKeyDownCapture, true)
+        return () => window.removeEventListener('keydown', onKeyDownCapture, true)
+    }, [captureBindings])
+
+    const hotkeysWithoutCapturedSingles = removeHotkeys(hotkeys, capturedHotkeyIds)
+    const singleChordHotkeys = filterHotkeys(hotkeysWithoutCapturedSingles, usesOneKeyChord)
+    const multiChordHotkeys = filterHotkeys(hotkeysWithoutCapturedSingles, usesMultipleKeyChords)
 
     return (
         <>
@@ -96,6 +129,23 @@ export const ReactHotkeys = ({keyMap, handlers}: Props) => {
 }
 
 type Hotkey = [KeySequence, Handler]
+
+const filterHotkeys = (hotkeys: Dictionary<Hotkey>, predicate: (hotkey: Hotkey) => boolean) =>
+    Object.keys(hotkeys).reduce<Dictionary<Hotkey>>((filteredHotkeys, id) => {
+        const hotkey = hotkeys[id]
+        if (hotkey && predicate(hotkey)) {
+            filteredHotkeys[id] = hotkey
+        }
+        return filteredHotkeys
+    }, {})
+
+const removeHotkeys = (hotkeys: Dictionary<Hotkey>, idsToRemove: string[]) =>
+    Object.keys(hotkeys).reduce<Dictionary<Hotkey>>((remainingHotkeys, id) => {
+        if (!idsToRemove.includes(id)) {
+            remainingHotkeys[id] = hotkeys[id]
+        }
+        return remainingHotkeys
+    }, {})
 
 const usesMultipleKeyChords = ([keySequence]: Hotkey) => keySequence.usesMultipleKeyChords()
 const usesOneKeyChord = ([keySequence]: Hotkey) => !keySequence.usesMultipleKeyChords()

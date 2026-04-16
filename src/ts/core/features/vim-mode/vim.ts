@@ -65,6 +65,7 @@ const _map = (modes: Mode[]): CommandMapper => (key, label, onPress, params = {}
     label,
     initValue: key,
     modes: modes.map(modeLabel),
+    consumeEvent: params.consumeEvent,
     onPress: async event => {
         const mode = getMode()
         if (modes.includes(mode)) {
