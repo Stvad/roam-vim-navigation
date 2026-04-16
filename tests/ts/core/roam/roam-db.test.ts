@@ -66,6 +66,7 @@ describe('RoamDb', () => {
             block: {uid: 'new123uid', string: ''},
         })
         await RoamDb.moveBlock({uid: 'abc123xyz', parentUid: 'parent123', order: 2})
+        await RoamDb.reorderBlocks({parentUid: 'parent123', blockUids: ['first1111', 'abc123xyz', 'third3333']})
         await RoamDb.deleteBlock('abc123xyz')
 
         expect(update).toHaveBeenCalledWith({block: {uid: 'abc123xyz', string: 'Updated'}})
@@ -76,6 +77,10 @@ describe('RoamDb', () => {
         expect(move).toHaveBeenCalledWith({
             location: {'parent-uid': 'parent123', order: 2},
             block: {uid: 'abc123xyz'},
+        })
+        expect(reorderBlocks).toHaveBeenCalledWith({
+            location: {'parent-uid': 'parent123'},
+            blocks: ['first1111', 'abc123xyz', 'third3333'],
         })
         expect(remove).toHaveBeenCalledWith({block: {uid: 'abc123xyz'}})
     })

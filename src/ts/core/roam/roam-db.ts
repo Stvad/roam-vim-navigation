@@ -95,6 +95,13 @@ export const RoamDb = {
         })
     },
 
+    reorderBlocks(params: {parentUid: string; blockUids: string[]}) {
+        return window.roamAlphaAPI.data.block.reorderBlocks({
+            location: {'parent-uid': params.parentUid},
+            blocks: params.blockUids,
+        })
+    },
+
     deleteBlock(uid: string) {
         return window.roamAlphaAPI.data.block.delete({block: {uid}})
     },

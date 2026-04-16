@@ -21,7 +21,13 @@ const moveSelectedBlock = async (offset: number) => {
     const focusedBlock = RoamDb.getFocusedBlock()
     const activeNode = focusedBlock?.['block-uid'] === uid ? Roam.getActiveRoamNode() : null
 
-    await RoamDb.moveBlock({uid, parentUid, order: targetOrder})
+    const reorderedSiblings = [...siblings]
+    ;[reorderedSiblings[order], reorderedSiblings[targetOrder]] = [
+        reorderedSiblings[targetOrder],
+        reorderedSiblings[order],
+    ]
+
+    await RoamDb.reorderBlocks({parentUid, blockUids: reorderedSiblings})
 
     if (focusedBlock?.['block-uid'] === uid && activeNode) {
         RoamDb.focusBlock(
