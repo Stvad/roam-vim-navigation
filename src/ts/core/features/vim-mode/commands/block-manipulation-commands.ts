@@ -57,7 +57,7 @@ const collapseIntoParent = async () => {
 }
 
 export const BlockManipulationCommands = [
-    nimap('command+shift+h', 'Move Block Up', moveBlockUp),
-    nimap('command+shift+k', 'Move Block Down', moveBlockDown),
+    nimap('command+shift+h', 'Move Block Up', moveBlockUp, {consumeEvent: true}),
+    nimap('command+shift+k', 'Move Block Down', moveBlockDown, {consumeEvent: true}),
     nmap('shift+ctrl+z', 'Collapse Into Parent', collapseIntoParent),
 ]
