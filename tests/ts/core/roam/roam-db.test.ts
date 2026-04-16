@@ -11,6 +11,7 @@ describe('RoamDb', () => {
     const remove = jest.fn()
     const reorderBlocks = jest.fn()
     const getFocusedBlock = jest.fn()
+    const getWindows = jest.fn()
     const setBlockFocusAndSelection = jest.fn()
 
     beforeEach(() => {
@@ -39,7 +40,7 @@ describe('RoamDb', () => {
                     openPage: jest.fn(),
                 },
                 rightSidebar: {
-                    getWindows: jest.fn(),
+                    getWindows,
                     addWindow: jest.fn(),
                 },
             },
@@ -92,6 +93,29 @@ describe('RoamDb', () => {
             location,
             selection: {start: 1, end: 3},
         })
+    })
+
+    it('resolves block locations in the main window without entering edit mode first', () => {
+        document.body.innerHTML = '<div class="roam-article"><div id="block-abc123xyz" class="roam-block"></div></div>'
+        getFocusedBlock.mockReturnValue({'block-uid': 'other0001', 'window-id': 'sidebar-window'})
+
+        const location = RoamDb.getBlockLocationForElement(document.getElementById('block-abc123xyz') as HTMLElement)
+
+        expect(location).toEqual({'block-uid': 'abc123xyz', 'window-id': 'main-window'})
+    })
+
+    it('resolves block locations in sidebar windows from the sidebar window list', () => {
+        document.body.innerHTML = `
+            <div class="sidebar-content">
+                <div><div id="panel-one"><div id="block-abc123xyz" class="roam-block"></div></div></div>
+                <div><div id="panel-two"><div id="block-def456uvw" class="roam-block"></div></div></div>
+            </div>
+        `
+        getWindows.mockReturnValue([{'window-id': 'window-one'}, {'window-id': 'window-two'}])
+
+        const location = RoamDb.getBlockLocationForElement(document.getElementById('block-def456uvw') as HTMLElement)
+
+        expect(location).toEqual({'block-uid': 'def456uvw', 'window-id': 'window-two'})
     })
 
     it('uses direct Roam undo and redo APIs', async () => {

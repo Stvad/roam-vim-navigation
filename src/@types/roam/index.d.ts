@@ -46,7 +46,7 @@ interface RoamAlphaAPI {
             openPage(params: {page: {uid: string}}): void
         }
         rightSidebar: {
-            getWindows(): Array<Record<string, unknown>>
+            getWindows(): Array<{'window-id'?: string} & Record<string, unknown>>
             addWindow(params: {window: {type: string; 'block-uid': string}}): void
         }
     }

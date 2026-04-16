@@ -1,3 +1,6 @@
+import {getBlockUid} from 'src/core/roam/block'
+import {Selectors} from 'src/core/roam/selectors'
+
 type RoamPage = {
     uid: string
     name: string
@@ -20,6 +23,24 @@ type BlockUpdate = {
 }
 
 const blockEntityId = (uid: string): [string, string] => [':block/uid', uid]
+const mainWindowId = 'main-window'
+
+const sidebarWindowIdForElement = (element: HTMLElement): string | null => {
+    const sidebarPage = element.closest(Selectors.sidebarPage) as HTMLElement | null
+    if (!sidebarPage) {
+        return null
+    }
+
+    const sidebarPages = Array.from(document.querySelectorAll(Selectors.sidebarPage))
+    const sidebarIndex = sidebarPages.indexOf(sidebarPage)
+    if (sidebarIndex < 0) {
+        return null
+    }
+
+    const sidebarWindow = window.roamAlphaAPI.ui.rightSidebar.getWindows()[sidebarIndex]
+    const windowId = sidebarWindow?.['window-id']
+    return typeof windowId === 'string' ? windowId : null
+}
 
 export const RoamDb = {
     getBlockById(dbId: number, pattern: string = '[*]') {
@@ -86,6 +107,25 @@ export const RoamDb = {
         return this.getFocusedBlock()?.['block-uid'] ?? null
     },
 
+    getBlockLocationForElement(element: HTMLElement): RoamBlockLocation | null {
+        const uid = getBlockUid(element.id)
+        const focusedBlock = this.getFocusedBlock()
+        if (focusedBlock?.['block-uid'] === uid) {
+            return focusedBlock
+        }
+
+        if (element.closest(Selectors.mainContent)) {
+            return {'block-uid': uid, 'window-id': mainWindowId}
+        }
+
+        const sidebarWindowId = sidebarWindowIdForElement(element)
+        if (sidebarWindowId) {
+            return {'block-uid': uid, 'window-id': sidebarWindowId}
+        }
+
+        return focusedBlock ? {...focusedBlock, 'block-uid': uid} : null
+    },
+
     getParentBlockUid(childUid: string): string | null {
         return this.query(
             '[:find ?parent-uid . :in $ ?child-uid :where [?child :block/uid ?child-uid] [?parent :block/children ?child] [?parent :block/uid ?parent-uid]]',
@@ -110,7 +150,7 @@ export const RoamDb = {
         window.roamAlphaAPI.ui.setBlockFocusAndSelection(selection ? {location, selection} : {location})
     },
 
-    focusBlockUid(uid: string, windowId: string = 'main-window', selection?: {start: number; end?: number}) {
+    focusBlockUid(uid: string, windowId: string = mainWindowId, selection?: {start: number; end?: number}) {
         this.focusBlock({'block-uid': uid, 'window-id': windowId}, selection)
     },
 

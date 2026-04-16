@@ -30,6 +30,10 @@ const selectionParams = (selection: Selection) =>
     selection.start === selection.end ? {start: selection.start} : {start: selection.start, end: selection.end}
 
 const focusedBlockLocation = (): RoamBlockLocation | null => RoamDb.getFocusedBlock()
+const blockLocation = (targetBlock?: HTMLElement): RoamBlockLocation | null =>
+    targetBlock ? RoamDb.getBlockLocationForElement(targetBlock) : focusedBlockLocation()
+const blockHasText = (block: HTMLElement): boolean =>
+    Boolean(RoamDb.getBlockByUid(getBlockUid(block.id))?.[':block/string'])
 
 const focusSelection = (selection: Selection) => {
     const focusedBlock = focusedBlockLocation()
@@ -172,8 +176,8 @@ export const Roam = {
         return this.writeText(existingText + text)
     },
 
-    async createSiblingAbove() {
-        const focusedBlock = focusedBlockLocation()
+    async createSiblingAbove(targetBlock?: HTMLElement) {
+        const focusedBlock = blockLocation(targetBlock)
         if (!focusedBlock) return
 
         const currentUid = focusedBlock['block-uid']
@@ -184,8 +188,8 @@ export const Roam = {
         await createEmptyBlockAt(focusedBlock, parentUid, order)
     },
 
-    async createBlockBelow() {
-        const focusedBlock = focusedBlockLocation()
+    async createBlockBelow(targetBlock?: HTMLElement) {
+        const focusedBlock = blockLocation(targetBlock)
         if (!focusedBlock) return
 
         const currentUid = focusedBlock['block-uid']
@@ -201,8 +205,8 @@ export const Roam = {
         await createEmptyBlockAt(focusedBlock, parentUid, order + 1)
     },
 
-    async createSiblingBelow() {
-        const focusedBlock = focusedBlockLocation()
+    async createSiblingBelow(targetBlock?: HTMLElement) {
+        const focusedBlock = blockLocation(targetBlock)
         if (!focusedBlock) return
 
         const currentUid = focusedBlock['block-uid']
@@ -236,16 +240,16 @@ export const Roam = {
     },
 
     async createBlockAtTop(forceCreation: boolean = false) {
-        await this.activateBlock(getFirstTopLevelBlock())
-        if (this.getActiveRoamNode()?.text || forceCreation) {
-            await this.createSiblingAbove()
+        const firstBlock = getFirstTopLevelBlock()
+        if (blockHasText(firstBlock) || forceCreation) {
+            await this.createSiblingAbove(firstBlock)
         }
     },
 
     async createBlockAtBottom(forceCreation: boolean = false) {
-        await this.activateBlock(getLastTopLevelBlock())
-        if (this.getActiveRoamNode()?.text || forceCreation) {
-            await this.createSiblingBelow()
+        const lastBlock = getLastTopLevelBlock()
+        if (blockHasText(lastBlock) || forceCreation) {
+            await this.createSiblingBelow(lastBlock)
         }
     },
 

@@ -3,8 +3,7 @@ import {nmap} from 'src/core/features/vim-mode/vim'
 import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
 
 export const insertBlockAfter = async () => {
-    await Roam.activateBlock(RoamBlock.selected().element)
-    await Roam.createBlockBelow()
+    await Roam.createBlockBelow(RoamBlock.selected().element)
 }
 
 const editBlock = async () => {
@@ -18,8 +17,7 @@ const editBlockFromEnd = async () => {
 }
 
 const insertBlockBefore = async () => {
-    await Roam.activateBlock(RoamBlock.selected().element)
-    await Roam.createSiblingAbove()
+    await Roam.createSiblingAbove(RoamBlock.selected().element)
 }
 
 export const InsertCommands = [

@@ -28,6 +28,7 @@ jest.mock('src/core/roam/roam-db', () => ({
         deleteBlock: jest.fn(),
         focusBlock: jest.fn(),
         getBlockByUid: jest.fn(),
+        getBlockLocationForElement: jest.fn(),
         getBlockOrder: jest.fn(),
         getChildBlockUids: jest.fn(),
         getFocusedBlock: jest.fn(),
@@ -42,6 +43,9 @@ import {Roam} from 'src/core/roam/roam'
 describe('Roam block creation helpers', () => {
     const createBlock = RoamDb.createBlock as jest.MockedFunction<typeof RoamDb.createBlock>
     const focusBlock = RoamDb.focusBlock as jest.MockedFunction<typeof RoamDb.focusBlock>
+    const getBlockLocationForElement = RoamDb.getBlockLocationForElement as jest.MockedFunction<
+        typeof RoamDb.getBlockLocationForElement
+    >
     const getBlockOrder = RoamDb.getBlockOrder as jest.MockedFunction<typeof RoamDb.getBlockOrder>
     const getChildBlockUids = RoamDb.getChildBlockUids as jest.MockedFunction<typeof RoamDb.getChildBlockUids>
     const getFocusedBlock = RoamDb.getFocusedBlock as jest.MockedFunction<typeof RoamDb.getFocusedBlock>
@@ -54,6 +58,7 @@ describe('Roam block creation helpers', () => {
         createBlock.mockResolvedValue(undefined)
         setBlockOpen.mockResolvedValue(undefined)
         generateUID.mockReturnValue('new-block')
+        getBlockLocationForElement.mockReturnValue(null)
         window.roamAlphaAPI = ({
             util: {
                 generateUID,
@@ -104,5 +109,25 @@ describe('Roam block creation helpers', () => {
             location: {parentUid: 'parent-block', order: 2},
             block: {uid: 'new-block', string: ''},
         })
+    })
+
+    it('can create below a selected block without reusing the currently focused block', async () => {
+        const target = document.createElement('div')
+        target.id = 'block-def456uvw'
+
+        getFocusedBlock.mockReturnValue({'block-uid': 'otherblock', 'window-id': 'sidebar-window'})
+        getBlockLocationForElement.mockReturnValue({'block-uid': 'def456uvw', 'window-id': 'main-window'})
+        getChildBlockUids.mockReturnValue([])
+        getParentBlockUid.mockReturnValue('parent-block')
+        getBlockOrder.mockReturnValue(0)
+
+        await Roam.createBlockBelow(target)
+
+        expect(getBlockLocationForElement).toHaveBeenCalledWith(target)
+        expect(createBlock).toHaveBeenCalledWith({
+            location: {parentUid: 'parent-block', order: 1},
+            block: {uid: 'new-block', string: ''},
+        })
+        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
     })
 })
