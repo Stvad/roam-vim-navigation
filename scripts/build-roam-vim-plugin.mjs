@@ -20,34 +20,7 @@ if (!React) {
     throw new Error('Roam runtime did not provide window.React')
 }
 
-export default React
-
-export const Children = React.Children
-export const Component = React.Component
-export const Fragment = React.Fragment
-export const PureComponent = React.PureComponent
-export const StrictMode = React.StrictMode
-export const Suspense = React.Suspense
-export const cloneElement = React.cloneElement
-export const createContext = React.createContext
-export const createElement = React.createElement
-export const createFactory = React.createFactory
-export const createRef = React.createRef
-export const forwardRef = React.forwardRef
-export const isValidElement = React.isValidElement
-export const lazy = React.lazy
-export const memo = React.memo
-export const useCallback = React.useCallback
-export const useContext = React.useContext
-export const useDebugValue = React.useDebugValue
-export const useEffect = React.useEffect
-export const useImperativeHandle = React.useImperativeHandle
-export const useLayoutEffect = React.useLayoutEffect
-export const useMemo = React.useMemo
-export const useReducer = React.useReducer
-export const useRef = React.useRef
-export const useState = React.useState
-export const version = React.version
+module.exports = React
 `
 
 const reactDomModuleSource = `
@@ -57,13 +30,7 @@ if (!ReactDOM) {
     throw new Error('Roam runtime did not provide window.ReactDOM')
 }
 
-export default ReactDOM
-
-export const createPortal = ReactDOM.createPortal
-export const findDOMNode = ReactDOM.findDOMNode
-export const hydrate = ReactDOM.hydrate
-export const render = ReactDOM.render
-export const unmountComponentAtNode = ReactDOM.unmountComponentAtNode
+module.exports = ReactDOM
 `
 
 await rm(extensionJs, {force: true})
