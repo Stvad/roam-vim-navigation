@@ -55,6 +55,16 @@ const dailyNotesTitleForGhostBlock = (block: HTMLElement): string | null => {
     )
 }
 
+const currentMainPageUid = (): string | null => {
+    const pageRouteMatch = window.location.hash.match(/\/page\/([^/?#]+)/)
+    if (!pageRouteMatch) {
+        return null
+    }
+
+    const [, pageUid] = pageRouteMatch
+    return pageUid ? decodeURIComponent(pageUid) : null
+}
+
 const pageTitleForGhostBlock = (block: HTMLElement): string | null => {
     const sidebarPage = block.closest(Selectors.sidebarPage) as HTMLElement | null
     const sidebarHeaderLink = sidebarPage?.querySelector('.window-headers div > a') as HTMLElement | null
@@ -112,8 +122,10 @@ const createEmptyChildBlock = async (location: RoamBlockLocation, parentUid: str
 
 const ghostBlockContext = (targetBlock: HTMLElement) => {
     const pageTitle = pageTitleForGhostBlock(targetBlock)
-    const parentUid = pageTitle ? RoamDb.getPageByName(pageTitle)?.[':block/uid'] : null
     const windowId = RoamDb.getPanelWindowIdForElement(targetBlock)
+    const parentUid =
+        (windowId === 'main-window' ? currentMainPageUid() : null) ||
+        (pageTitle ? RoamDb.getPageByName(pageTitle)?.[':block/uid'] : null)
     if (!parentUid || !windowId) {
         return null
     }

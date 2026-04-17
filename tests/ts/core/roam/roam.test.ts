@@ -63,6 +63,7 @@ describe('Roam block creation helpers', () => {
 
     beforeEach(() => {
         jest.clearAllMocks()
+        window.location.hash = ''
         createBlock.mockResolvedValue(undefined)
         setBlockOpen.mockResolvedValue(undefined)
         generateUID.mockReturnValue('new-block')
@@ -182,6 +183,25 @@ describe('Roam block creation helpers', () => {
         expect(getPageByName).toHaveBeenCalledWith('Empty Page')
         expect(createBlock).toHaveBeenCalledWith({
             location: {parentUid: 'page-uid', order: 0},
+            block: {uid: 'new-block', string: ''},
+        })
+        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
+    })
+
+    it('prefers the current main page uid for ghost blocks on page routes', async () => {
+        window.location.hash = '#/app/test/page/04-17-2026'
+        getPageByName.mockReturnValue(null)
+        document.body.innerHTML =
+            '<div class="roam-article"><div class="rm-title-display"><span>April 17th, 2026</span></div></div>'
+        const target = document.createElement('div')
+        target.id = 'block-input-ghost'
+        ;(document.querySelector('.roam-article') as HTMLElement).appendChild(target)
+
+        await Roam.focusBlockAtStart(target)
+
+        expect(getPageByName).not.toHaveBeenCalled()
+        expect(createBlock).toHaveBeenCalledWith({
+            location: {parentUid: '04-17-2026', order: 0},
             block: {uid: 'new-block', string: ''},
         })
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
