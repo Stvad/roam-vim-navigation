@@ -1,4 +1,3 @@
-import React from 'react'
 import {Dictionary} from 'lodash'
 
 import {Shortcut} from 'src/core/features/vim-mode/types'
@@ -22,7 +21,7 @@ type PanelSetting = {
     name: string
     description?: string
     action: {
-        component?: React.ComponentType
+        component?: () => unknown
         content?: string
         default?: boolean | string
         items?: string[]
@@ -165,25 +164,10 @@ const getModeGroupLabel = (group: string) => {
 
 const createSectionHeader = (id: string, label: string): PanelSetting => ({
     id,
-    name: '',
+    name: label,
     action: {
         type: 'reactComponent',
-        component: () =>
-            React.createElement(
-                'div',
-                {
-                    style: {
-                        borderTop: '1px solid rgba(16, 22, 26, 0.15)',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        letterSpacing: '0.08em',
-                        marginTop: '8px',
-                        paddingTop: '12px',
-                        textTransform: 'uppercase',
-                    },
-                },
-                label
-            ),
+        component: () => '',
     },
 })
 

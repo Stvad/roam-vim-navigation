@@ -1,7 +1,4 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-
-import {Hotkeys} from 'src/core/hotkeys'
+import {registerHotkeys} from 'src/core/hotkeys'
 import {getPrimaryHintShortcut, startVimMode, stopVimMode, VIM_SHORTCUTS} from './feature'
 import {
     createSettingsPanel,
@@ -16,20 +13,7 @@ import {DEFAULT_HINT_KEYS, resetHintKeyProvider, setHintKeyProvider} from 'src/c
 import {removeStyle} from 'src/core/common/css'
 
 let extensionAPI: RoamExtensionAPI | null = null
-
-const shortcutContainer = document.createElement('div')
-shortcutContainer.id = 'roam-toolkit-vim-mode-hotkeys'
-shortcutContainer.style.display = 'none'
-
-const ensureShortcutContainer = () => {
-    if (!shortcutContainer.isConnected) {
-        document.body.appendChild(shortcutContainer)
-    }
-}
-
-const unmountHotkeys = () => {
-    ReactDOM.unmountComponentAtNode(shortcutContainer)
-}
+let unregisterHotkeys = () => {}
 
 const syncHintKeys = async () => {
     if (!extensionAPI) {
@@ -53,11 +37,11 @@ const renderHotkeys = async () => {
         return
     }
 
-    ensureShortcutContainer()
     const keyMap = await getCurrentKeyMap(extensionAPI, VIM_SHORTCUTS)
     const handlers = getShortcutHandlers(VIM_SHORTCUTS)
 
-    ReactDOM.render(<Hotkeys keyMap={keyMap} handlers={handlers} />, shortcutContainer)
+    unregisterHotkeys()
+    unregisterHotkeys = registerHotkeys({keyMap, handlers})
 }
 
 const syncPluginState = async () => {
@@ -78,7 +62,6 @@ type OnloadArgs = {
 
 const onload = async ({extensionAPI: api}: OnloadArgs) => {
     extensionAPI = api
-    ensureShortcutContainer()
     await initializeSettings(api, VIM_SHORTCUTS)
     createSettingsPanel(api, VIM_SHORTCUTS, syncPluginState)
     await syncPluginState()
@@ -89,8 +72,8 @@ const onunload = async () => {
         stopVimMode()
     }
 
-    unmountHotkeys()
-    shortcutContainer.remove()
+    unregisterHotkeys()
+    unregisterHotkeys = () => {}
     await resetHintKeyProvider()
     removeStyle('roam-toolkit-block-mode')
     removeStyle('roam-toolkit-block-mode--hint')

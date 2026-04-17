@@ -77,7 +77,7 @@ interface RoamExtensionAPI {
                     description?: string
                     action: {
                         type: string
-                        component?: React.ComponentType
+                        component?: () => unknown
                         default?: boolean | string
                         items?: string[]
                         placeholder?: string

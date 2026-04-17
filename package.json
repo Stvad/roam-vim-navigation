@@ -18,8 +18,6 @@
         "dateformat": "^3.0.3",
         "immutable": "^4.0.0-rc.12",
         "lodash": "^4.17.21",
-        "react": "^16.12.0",
-        "react-dom": "^16.12.0",
         "tinykeys": "^3.0.0"
     },
     "devDependencies": {
@@ -28,7 +26,6 @@
         "@types/jest": "^24.9.1",
         "@types/lodash": "^4.14.157",
         "@types/node": "^13.5.0",
-        "@types/react-dom": "^16.9.5",
         "@typescript-eslint/eslint-plugin": "^5.62.0",
         "@typescript-eslint/parser": "^5.62.0",
         "esbuild": "^0.28.0",
