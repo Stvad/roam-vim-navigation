@@ -16,6 +16,49 @@ let extensionAPI: RoamExtensionAPI | null = null
 let unregisterHotkeys = () => {}
 let unregisterLayoutChangeListener = () => {}
 
+type KeyboardWithOptionalLayoutChangeSupport = Navigator['keyboard'] & {
+    addEventListener?: (
+        type: 'layoutchange',
+        listener: (this: Keyboard, ev: Event) => any,
+        options?: boolean | AddEventListenerOptions,
+    ) => void
+    removeEventListener?: (
+        type: 'layoutchange',
+        listener: (this: Keyboard, ev: Event) => any,
+        options?: boolean | EventListenerOptions,
+    ) => void
+    onlayoutchange?: ((this: Keyboard, ev: Event) => any) | null
+}
+
+export const subscribeToKeyboardLayoutChanges = (onLayoutChange: () => void) => {
+    const keyboard = navigator.keyboard as KeyboardWithOptionalLayoutChangeSupport | undefined
+    if (!keyboard) {
+        return () => {}
+    }
+
+    const listener = () => {
+        void onLayoutChange()
+    }
+
+    if (typeof keyboard.addEventListener === 'function' && typeof keyboard.removeEventListener === 'function') {
+        keyboard.addEventListener('layoutchange', listener)
+        return () => keyboard.removeEventListener?.('layoutchange', listener)
+    }
+
+    if ('onlayoutchange' in keyboard) {
+        const previousOnLayoutChange = keyboard.onlayoutchange
+        keyboard.onlayoutchange = function (this: Keyboard, event: Event) {
+            previousOnLayoutChange?.call(this, event)
+            listener()
+        }
+        return () => {
+            keyboard.onlayoutchange = previousOnLayoutChange ?? null
+        }
+    }
+
+    return () => {}
+}
+
 const syncHintKeys = async () => {
     if (!extensionAPI) {
         return
@@ -65,15 +108,7 @@ const onload = async ({extensionAPI: api}: OnloadArgs) => {
     extensionAPI = api
     await initializeSettings(api, VIM_SHORTCUTS)
     createSettingsPanel(api, VIM_SHORTCUTS, syncPluginState)
-
-    const keyboard = navigator.keyboard
-    if (keyboard) {
-        const onLayoutChange = () => {
-            void renderHotkeys()
-        }
-        keyboard.addEventListener('layoutchange', onLayoutChange)
-        unregisterLayoutChangeListener = () => keyboard.removeEventListener('layoutchange', onLayoutChange)
-    }
+    unregisterLayoutChangeListener = subscribeToKeyboardLayoutChanges(renderHotkeys)
 
     await syncPluginState()
 }
