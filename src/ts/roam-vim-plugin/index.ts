@@ -41,7 +41,7 @@ const renderHotkeys = async () => {
     const handlers = getShortcutHandlers(VIM_SHORTCUTS)
 
     unregisterHotkeys()
-    unregisterHotkeys = await registerHotkeys({keyMap, handlers})
+    unregisterHotkeys = registerHotkeys({keyMap, handlers})
 }
 
 const syncPluginState = async () => {
