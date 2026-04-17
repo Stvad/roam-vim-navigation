@@ -7,6 +7,7 @@ export const Selectors = {
     blockReference: '.rm-block-ref',
     blockBulletView: '.block-bullet-view',
     title: '.rm-title-display',
+    titleDisplayContainer: '.rm-title-display-container',
 
     main: '.roam-main',
     mainContent: '.roam-article',

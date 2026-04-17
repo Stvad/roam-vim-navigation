@@ -55,14 +55,13 @@ const dailyNotesTitleForGhostBlock = (block: HTMLElement): string | null => {
     )
 }
 
-const currentMainPageUid = (): string | null => {
-    const pageRouteMatch = window.location.hash.match(/\/page\/([^/?#]+)/)
-    if (!pageRouteMatch) {
-        return null
-    }
-
-    const [, pageUid] = pageRouteMatch
-    return pageUid ? decodeURIComponent(pageUid) : null
+const pageUidForGhostBlock = (block: HTMLElement): string | null => {
+    const panel = (block.closest(Selectors.sidebarPage) || block.closest(Selectors.mainContent)) as HTMLElement | null
+    const titleContainer = panel?.querySelector(
+        `${Selectors.titleDisplayContainer}[data-page-uid]`,
+    ) as HTMLElement | null
+    const pageUid = titleContainer?.dataset.pageUid?.trim()
+    return pageUid || null
 }
 
 const pageTitleForGhostBlock = (block: HTMLElement): string | null => {
@@ -121,16 +120,15 @@ const createEmptyChildBlock = async (location: RoamBlockLocation, parentUid: str
 }
 
 const ghostBlockContext = (targetBlock: HTMLElement) => {
+    const parentUid = pageUidForGhostBlock(targetBlock)
     const pageTitle = pageTitleForGhostBlock(targetBlock)
     const windowId = RoamDb.getPanelWindowIdForElement(targetBlock)
-    const parentUid =
-        (windowId === 'main-window' ? currentMainPageUid() : null) ||
-        (pageTitle ? RoamDb.getPageByName(pageTitle)?.[':block/uid'] : null)
-    if (!parentUid || !windowId) {
+    const resolvedParentUid = parentUid || (pageTitle ? RoamDb.getPageByName(pageTitle)?.[':block/uid'] : null)
+    if (!resolvedParentUid || !windowId) {
         return null
     }
 
-    return {parentUid, windowId}
+    return {parentUid: resolvedParentUid, windowId}
 }
 
 const materializeGhostBlock = async (

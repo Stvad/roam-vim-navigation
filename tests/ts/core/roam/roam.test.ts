@@ -63,7 +63,6 @@ describe('Roam block creation helpers', () => {
 
     beforeEach(() => {
         jest.clearAllMocks()
-        window.location.hash = ''
         createBlock.mockResolvedValue(undefined)
         setBlockOpen.mockResolvedValue(undefined)
         generateUID.mockReturnValue('new-block')
@@ -188,11 +187,10 @@ describe('Roam block creation helpers', () => {
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
     })
 
-    it('prefers the current main page uid for ghost blocks on page routes', async () => {
-        window.location.hash = '#/app/test/page/04-17-2026'
+    it('prefers the page uid from the title display container for ghost blocks on page views', async () => {
         getPageByName.mockReturnValue(null)
         document.body.innerHTML =
-            '<div class="roam-article"><div class="rm-title-display"><span>April 17th, 2026</span></div></div>'
+            '<div class="roam-article"><div class="rm-title-display-container" data-page-uid="04-17-2026"><div class="rm-title-display"><span>April 17th, 2026</span></div></div></div>'
         const target = document.createElement('div')
         target.id = 'block-input-ghost'
         ;(document.querySelector('.roam-article') as HTMLElement).appendChild(target)
@@ -293,7 +291,11 @@ describe('Roam block creation helpers', () => {
             <div class="sidebar-content">
                 <div>
                     <div>
-                        <div class="window-headers"><div><a>Sidebar Page</a></div></div>
+                        <div class="window-headers">
+                            <div class="rm-title-display-container" data-page-uid="sidebar-page-uid">
+                                <div class="rm-title-display"><span>Sidebar Page</span></div>
+                            </div>
+                        </div>
                         <div id="block-input-ghost"></div>
                     </div>
                 </div>
@@ -304,9 +306,9 @@ describe('Roam block creation helpers', () => {
 
         await Roam.focusBlockAtStart(target)
 
-        expect(getPageByName).toHaveBeenCalledWith('Sidebar Page')
+        expect(getPageByName).not.toHaveBeenCalled()
         expect(createBlock).toHaveBeenCalledWith({
-            location: {parentUid: 'page-uid', order: 0},
+            location: {parentUid: 'sidebar-page-uid', order: 0},
             block: {uid: 'new-block', string: ''},
         })
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'sidebar-window'}, {start: 0})
