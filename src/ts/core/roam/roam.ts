@@ -36,16 +36,40 @@ const blockLocation = (targetBlock?: HTMLElement): RoamBlockLocation | null =>
 const isGhostBlock = (block?: HTMLElement): block is HTMLElement => block?.id === 'block-input-ghost'
 const blockText = (block: HTMLElement): string => RoamDb.getBlockByUid(getBlockUid(block.id))?.[':block/string'] || ''
 const blockHasText = (block: HTMLElement): boolean => Boolean(blockText(block))
+const textContent = (element: Element | null): string | null => {
+    const text = element?.textContent?.trim()
+    return text ? text : null
+}
+
+const dailyNotesTitleForGhostBlock = (block: HTMLElement): string | null => {
+    const dailyNotesPage = (block.closest(Selectors.dailyNotesPage) ||
+        block.closest(Selectors.dailyNotes)) as HTMLElement | null
+    if (!dailyNotesPage) {
+        return null
+    }
+
+    return (
+        textContent(dailyNotesPage.querySelector('.roam-log-preview h1 a')) ||
+        textContent(dailyNotesPage.querySelector('.roam-log-preview h1')) ||
+        textContent(dailyNotesPage.querySelector('.rm-title-display > span'))
+    )
+}
+
 const pageTitleForGhostBlock = (block: HTMLElement): string | null => {
     const sidebarPage = block.closest(Selectors.sidebarPage) as HTMLElement | null
     const sidebarHeaderLink = sidebarPage?.querySelector('.window-headers div > a') as HTMLElement | null
     if (sidebarHeaderLink?.textContent) {
-        return sidebarHeaderLink.textContent
+        return sidebarHeaderLink.textContent.trim()
+    }
+
+    const dailyNotesTitle = dailyNotesTitleForGhostBlock(block)
+    if (dailyNotesTitle) {
+        return dailyNotesTitle
     }
 
     const page = (block.closest(Selectors.mainContent) || sidebarPage) as HTMLElement | null
     const pageTitle = page?.querySelector('.rm-title-display > span') as HTMLElement | null
-    return pageTitle?.textContent ?? null
+    return textContent(pageTitle)
 }
 
 const focusSelection = (selection: Selection) => {

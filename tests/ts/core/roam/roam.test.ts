@@ -291,4 +291,27 @@ describe('Roam block creation helpers', () => {
         })
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'sidebar-window'}, {start: 0})
     })
+
+    it('creates the first real block on an empty daily note page using the daily note title', async () => {
+        document.body.innerHTML = `
+            <div class="roam-article">
+                <div id="rm-log-container">
+                    <div class="roam-log-preview">
+                        <h1><a>April 17th, 2026</a></h1>
+                    </div>
+                    <div id="block-input-ghost"></div>
+                </div>
+            </div>
+        `
+        const target = document.getElementById('block-input-ghost') as HTMLElement
+
+        await Roam.focusBlockAtStart(target)
+
+        expect(getPageByName).toHaveBeenCalledWith('April 17th, 2026')
+        expect(createBlock).toHaveBeenCalledWith({
+            location: {parentUid: 'page-uid', order: 0},
+            block: {uid: 'new-block', string: ''},
+        })
+        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
+    })
 })

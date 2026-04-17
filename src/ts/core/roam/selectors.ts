@@ -26,6 +26,7 @@ export const Selectors = {
     button: '.bp3-button',
     closeButton: '.bp3-icon-cross',
     dailyNotes: '#rm-log-container',
+    dailyNotesPage: '.roam-log-page',
     viewMore: '.roam-log-preview',
     checkbox: '.check-container',
     externalLink: 'a',
