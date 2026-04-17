@@ -15,6 +15,11 @@ describe('Converting key sequences for tinykeys', () => {
         expect(toTinykeysKeySequence('cmd+enter')).toEqual('Meta+Enter')
         expect(toTinykeysKeySequence('g g')).toEqual('g g')
     })
+
+    it('maps digit bindings to physical Digit codes to preserve the old keyCode-style behavior', () => {
+        expect(toTinykeysKeySequence('ctrl+shift+2')).toEqual('Control+Shift+(Digit2)')
+        expect(toTinykeysKeySequence('shift+2')).toEqual('Shift+(Digit2)')
+    })
 })
 
 describe('tinykeys matching behavior', () => {
@@ -33,6 +38,17 @@ describe('tinykeys matching behavior', () => {
 
         expect(matchKeyBindingPress(commandShiftHEvent, keyBindingPress)).toBe(true)
         expect(matchKeyBindingPress(commandHEvent, keyBindingPress)).toBe(false)
+    })
+
+    it('matches digit bindings by code even when the browser reports the shifted symbol as the key', () => {
+        const [keyBindingPress] = parseKeybinding('Control+Shift+(Digit2)')
+        const controlShift2Event = {
+            code: 'Digit2',
+            key: '@',
+            getModifierState: (modifier: string) => modifier === 'Control' || modifier === 'Shift',
+        } as unknown as KeyboardEvent
+
+        expect(matchKeyBindingPress(controlShift2Event, keyBindingPress)).toBe(true)
     })
 })
 

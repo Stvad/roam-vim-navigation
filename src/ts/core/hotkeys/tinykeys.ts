@@ -42,6 +42,10 @@ const normalizeKey = (key: string) => {
     }
 
     const lowerKey = key.toLowerCase()
+    if (/^\d$/.test(lowerKey)) {
+        return `(Digit${lowerKey})`
+    }
+
     return KEY_ALIASES[lowerKey] ?? key
 }
 
