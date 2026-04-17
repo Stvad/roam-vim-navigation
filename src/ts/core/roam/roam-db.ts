@@ -24,6 +24,21 @@ type BlockUpdate = {
 
 const blockEntityId = (uid: string): [string, string] => [':block/uid', uid]
 const mainWindowId = 'main-window'
+const blockIdPrefixes = ['block-input-', 'block-']
+
+const explicitWindowIdForElement = (element: HTMLElement): string | null => {
+    const uid = getBlockUid(element.id)
+    const normalizedId = blockIdPrefixes.reduce(
+        (id, prefix) => (id.startsWith(prefix) ? id.slice(prefix.length) : id),
+        element.id,
+    )
+
+    if (!normalizedId.startsWith('render-block-path-') || !normalizedId.endsWith(`-${uid}`)) {
+        return null
+    }
+
+    return normalizedId.slice(0, -(uid.length + 1))
+}
 
 const sidebarWindowIdForElement = (element: HTMLElement): string | null => {
     const sidebarPage = element.closest(Selectors.sidebarPage) as HTMLElement | null
@@ -69,7 +84,7 @@ export const RoamDb = {
     getBlockOrder(uid: string): number | null {
         return this.query(
             '[:find ?order . :in $ ?uid :where [?block :block/uid ?uid] [?block :block/order ?order]]',
-            uid
+            uid,
         )
     },
 
@@ -116,6 +131,11 @@ export const RoamDb = {
 
     getBlockLocationForElement(element: HTMLElement): RoamBlockLocation | null {
         const uid = getBlockUid(element.id)
+        const explicitWindowId = explicitWindowIdForElement(element)
+        if (explicitWindowId) {
+            return {'block-uid': uid, 'window-id': explicitWindowId}
+        }
+
         const focusedBlock = this.getFocusedBlock()
         if (focusedBlock?.['block-uid'] === uid) {
             return focusedBlock
@@ -136,14 +156,14 @@ export const RoamDb = {
     getParentBlockUid(childUid: string): string | null {
         return this.query(
             '[:find ?parent-uid . :in $ ?child-uid :where [?child :block/uid ?child-uid] [?parent :block/children ?child] [?parent :block/uid ?parent-uid]]',
-            childUid
+            childUid,
         )
     },
 
     getChildBlockUids(parentUid: string): string[] {
         const children = this.query(
             '[:find ?child-uid ?order :in $ ?parent-uid :where [?parent :block/uid ?parent-uid] [?parent :block/children ?child] [?child :block/uid ?child-uid] [?child :block/order ?order]]',
-            parentUid
+            parentUid,
         ) as [string, number][]
 
         return children.sort((left, right) => left[1] - right[1]).map(([uid]) => uid)
@@ -170,8 +190,8 @@ export const RoamDb = {
     },
 
     getAllPages(): RoamPage[] {
-        return this.query(
-            '[:find ?uid ?title :where [?page :node/title ?title] [?page :block/uid ?uid]]'
-        ).map(([uid, name]: [string, string]) => ({uid, name}))
+        return this.query('[:find ?uid ?title :where [?page :node/title ?title] [?page :block/uid ?uid]]').map(
+            ([uid, name]: [string, string]) => ({uid, name}),
+        )
     },
 }

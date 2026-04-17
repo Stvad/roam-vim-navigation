@@ -124,6 +124,28 @@ describe('RoamDb', () => {
         expect(location).toEqual({'block-uid': 'def456uvw', 'window-id': 'window-two'})
     })
 
+    it('resolves reference-block locations from the explicit render-block-path window id', () => {
+        document.body.innerHTML = `
+            <div class="rm-reference-item">
+                <textarea
+                    id="block-input-render-block-path-CEbj5I-GX-uuid64372780-883a-45d7-86e2-8b0a15acb467-CEbj5I-GX"
+                    class="rm-block-input"></textarea>
+            </div>
+        `
+        getFocusedBlock.mockReturnValue({'block-uid': 'other0001', 'window-id': 'main-window'})
+
+        const location = RoamDb.getBlockLocationForElement(
+            document.getElementById(
+                'block-input-render-block-path-CEbj5I-GX-uuid64372780-883a-45d7-86e2-8b0a15acb467-CEbj5I-GX',
+            ) as HTMLElement,
+        )
+
+        expect(location).toEqual({
+            'block-uid': 'CEbj5I-GX',
+            'window-id': 'render-block-path-CEbj5I-GX-uuid64372780-883a-45d7-86e2-8b0a15acb467',
+        })
+    })
+
     it('uses direct Roam undo and redo APIs', async () => {
         await RoamDb.undo()
         await RoamDb.redo()
