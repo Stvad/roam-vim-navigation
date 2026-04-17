@@ -1,8 +1,9 @@
-import {KeySequence, KeySequenceString} from 'src/core/react-hotkeys/key-sequence'
-import {blockConcurrentHandlingOfSimulatedKeys, Handler} from 'src/core/react-hotkeys/key-handler'
-import {matchKeyBindingPress, parseKeybinding} from 'src/core/react-hotkeys/tinykeys-lib'
+import {matchKeyBindingPress, parseKeybinding} from 'tinykeys'
+
+import {KeySequence, KeySequenceString} from 'src/core/hotkeys/key-sequence'
+import {guardAgainstSimulatedKeys, Handler} from 'src/core/hotkeys/simulation-guard'
 import {delay} from 'src/core/common/async'
-import {createTinykeysKeyMap, toTinykeysKeySequence} from 'src/core/react-hotkeys/tinykeys'
+import {createTinykeysKeyMap, toTinykeysKeySequence} from 'src/core/hotkeys/tinykeys'
 
 describe('Converting key sequences for tinykeys', () => {
     it('maps existing modifier aliases to tinykeys modifier names', () => {
@@ -47,7 +48,7 @@ describe('Creating a tinykeys key map', () => {
 
 describe('Not recursively triggering our own hotkeys when simulating keys for native actions', () => {
     const adaptHandler = (keySequenceString: KeySequenceString, handler: Handler): Handler =>
-        blockConcurrentHandlingOfSimulatedKeys(KeySequence.fromString(keySequenceString), handler)
+        guardAgainstSimulatedKeys(KeySequence.fromString(keySequenceString), handler)
 
     it('lets handlers trigger when no other handler is running', () => {
         const ourCustomEscapeHotkey = jest.fn()

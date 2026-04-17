@@ -1,7 +1,7 @@
 import {KeySequence} from './key-sequence'
 
 /**
- * A "Handler" is function to run in response to a keypress.
+ * A "Handler" is a function to run in response to a keypress.
  * It may return a promise to indicate that the function is asynchronous, and
  * takes time to finish.
  */
@@ -42,7 +42,7 @@ const trackWhetherExecuting = (handler: Handler): Handler => async (event: Keybo
  * @return a decorated version of a handler that does nothing if other
  *         handlers are running
  */
-export const blockConcurrentHandlingOfSimulatedKeys = (keySequence: KeySequence, handler: Handler): Handler => {
+export const guardAgainstSimulatedKeys = (keySequence: KeySequence, handler: Handler): Handler => {
     if (keySequence.mightBeSimulated()) {
         return blockConcurrentHandling(handler)
     } else {

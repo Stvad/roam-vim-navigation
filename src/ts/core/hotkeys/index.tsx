@@ -1,9 +1,9 @@
 import React from 'react'
+import {tinykeys} from 'tinykeys'
 import {Dictionary} from 'lodash'
 
-import {Handler} from './key-handler'
+import {Handler} from './simulation-guard'
 import {KeySequenceString} from './key-sequence'
-import {tinykeys} from './tinykeys-lib'
 import {createTinykeysKeyMap} from './tinykeys'
 
 type Props = {
@@ -14,7 +14,7 @@ type Props = {
 /**
  * Keep the existing component boundary, but delegate actual keyboard matching to tinykeys.
  */
-export const ReactHotkeys = ({keyMap, handlers}: Props) => {
+export const Hotkeys = ({keyMap, handlers}: Props) => {
     const tinykeysKeyMap = React.useMemo(() => createTinykeysKeyMap(keyMap, handlers), [handlers, keyMap])
 
     React.useEffect(() => {

@@ -1,6 +1,6 @@
 import {Dictionary} from 'lodash'
 
-import {Handler, blockConcurrentHandlingOfSimulatedKeys} from './key-handler'
+import {Handler, guardAgainstSimulatedKeys} from './simulation-guard'
 import {KeySequence, KeySequenceString} from './key-sequence'
 
 const MODIFIER_ALIASES: Record<string, string> = {
@@ -77,7 +77,7 @@ export const createTinykeysKeyMap = (
             return tinykeysKeyMap
         }
 
-        tinykeysKeyMap[toTinykeysKeySequence(keySequenceString)] = blockConcurrentHandlingOfSimulatedKeys(
+        tinykeysKeyMap[toTinykeysKeySequence(keySequenceString)] = guardAgainstSimulatedKeys(
             KeySequence.fromString(keySequenceString),
             handler
         )

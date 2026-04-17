@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import {ReactHotkeys} from 'src/core/react-hotkeys'
+import {Hotkeys} from 'src/core/hotkeys'
 import {getPrimaryHintShortcut, startVimMode, stopVimMode, VIM_SHORTCUTS} from './feature'
 import {
     createSettingsPanel,
@@ -57,7 +57,7 @@ const renderHotkeys = async () => {
     const keyMap = await getCurrentKeyMap(extensionAPI, VIM_SHORTCUTS)
     const handlers = getShortcutHandlers(VIM_SHORTCUTS)
 
-    ReactDOM.render(<ReactHotkeys keyMap={keyMap} handlers={handlers} />, shortcutContainer)
+    ReactDOM.render(<Hotkeys keyMap={keyMap} handlers={handlers} />, shortcutContainer)
 }
 
 const syncPluginState = async () => {
