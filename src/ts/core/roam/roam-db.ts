@@ -24,14 +24,15 @@ type BlockUpdate = {
 
 const blockEntityId = (uid: string): [string, string] => [':block/uid', uid]
 const mainWindowId = 'main-window'
-const blockIdPrefixes = ['block-input-', 'block-']
+const explicitWindowIdPrefix = 'block-input-'
 
 const explicitWindowIdForElement = (element: HTMLElement): string | null => {
+    if (!element.id.startsWith(explicitWindowIdPrefix)) {
+        return null
+    }
+
     const uid = getBlockUid(element.id)
-    const normalizedId = blockIdPrefixes.reduce(
-        (id, prefix) => (id.startsWith(prefix) ? id.slice(prefix.length) : id),
-        element.id,
-    )
+    const normalizedId = element.id.slice(explicitWindowIdPrefix.length)
     const uidSuffix = `-${uid}`
 
     if (!normalizedId.endsWith(uidSuffix)) {
