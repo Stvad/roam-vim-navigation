@@ -6,6 +6,7 @@ import {Keyboard} from '../common/keyboard'
 import {Mouse} from '../common/mouse'
 import {delay} from 'src/core/common/async'
 import {RoamBlockLocation, RoamDb} from './roam-db'
+import {Selectors} from './selectors'
 
 function setValueOnReactInput(element: HTMLTextAreaElement, value: string) {
     const getSetter = (target: any) => Object.getOwnPropertyDescriptor(target, 'value')?.set
@@ -35,6 +36,17 @@ const blockLocation = (targetBlock?: HTMLElement): RoamBlockLocation | null =>
 const isGhostBlock = (block?: HTMLElement): block is HTMLElement => block?.id === 'block-input-ghost'
 const blockText = (block: HTMLElement): string => RoamDb.getBlockByUid(getBlockUid(block.id))?.[':block/string'] || ''
 const blockHasText = (block: HTMLElement): boolean => Boolean(blockText(block))
+const pageTitleForGhostBlock = (block: HTMLElement): string | null => {
+    const sidebarPage = block.closest(Selectors.sidebarPage) as HTMLElement | null
+    const sidebarHeaderLink = sidebarPage?.querySelector('.window-headers div > a') as HTMLElement | null
+    if (sidebarHeaderLink?.textContent) {
+        return sidebarHeaderLink.textContent
+    }
+
+    const page = (block.closest(Selectors.mainContent) || sidebarPage) as HTMLElement | null
+    const pageTitle = page?.querySelector('.rm-title-display > span') as HTMLElement | null
+    return pageTitle?.textContent ?? null
+}
 
 const focusSelection = (selection: Selection) => {
     const focusedBlock = focusedBlockLocation()
@@ -58,6 +70,17 @@ const createEmptyBlockAt = async (location: RoamBlockLocation, parentUid: string
 const createEmptyChildBlock = async (location: RoamBlockLocation, parentUid: string, order: 0 | 'last' = 'last') => {
     await RoamDb.setBlockOpen(parentUid, true)
     return createEmptyBlockAt(location, parentUid, order)
+}
+
+const createGhostPageBlock = async (targetBlock: HTMLElement) => {
+    const pageTitle = pageTitleForGhostBlock(targetBlock)
+    const parentUid = pageTitle ? RoamDb.getPageByName(pageTitle)?.[':block/uid'] : null
+    const windowId = RoamDb.getWindowIdForElement(targetBlock)
+    if (!parentUid || !windowId) {
+        return null
+    }
+
+    return createEmptyBlockAt({'block-uid': parentUid, 'window-id': windowId}, parentUid, 0)
 }
 
 export const Roam = {
@@ -169,7 +192,7 @@ export const Roam = {
 
     focusBlockSelection(targetBlock: HTMLElement, selection?: {start: number; end?: number}) {
         if (isGhostBlock(targetBlock)) {
-            void this.activateBlock(targetBlock)
+            void createGhostPageBlock(targetBlock)
             return
         }
 
@@ -185,7 +208,7 @@ export const Roam = {
 
     focusBlockAtEnd(targetBlock: HTMLElement) {
         if (isGhostBlock(targetBlock)) {
-            void this.activateBlock(targetBlock)
+            void createGhostPageBlock(targetBlock)
             return
         }
 
@@ -204,7 +227,7 @@ export const Roam = {
 
     async createSiblingAbove(targetBlock?: HTMLElement) {
         if (isGhostBlock(targetBlock)) {
-            await this.activateBlock(targetBlock)
+            await createGhostPageBlock(targetBlock)
             return
         }
 
@@ -221,7 +244,7 @@ export const Roam = {
 
     async createBlockBelow(targetBlock?: HTMLElement) {
         if (isGhostBlock(targetBlock)) {
-            await this.activateBlock(targetBlock)
+            await createGhostPageBlock(targetBlock)
             return
         }
 

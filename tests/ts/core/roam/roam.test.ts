@@ -32,14 +32,15 @@ jest.mock('src/core/roam/roam-db', () => ({
         getBlockOrder: jest.fn(),
         getChildBlockUids: jest.fn(),
         getFocusedBlock: jest.fn(),
+        getPageByName: jest.fn(),
         getParentBlockUid: jest.fn(),
+        getWindowIdForElement: jest.fn(),
         setBlockOpen: jest.fn(),
     },
 }))
 
 import {RoamDb} from 'src/core/roam/roam-db'
 import {Roam} from 'src/core/roam/roam'
-import {Mouse} from 'src/core/common/mouse'
 
 describe('Roam block creation helpers', () => {
     const createBlock = RoamDb.createBlock as jest.MockedFunction<typeof RoamDb.createBlock>
@@ -51,9 +52,12 @@ describe('Roam block creation helpers', () => {
     const getBlockOrder = RoamDb.getBlockOrder as jest.MockedFunction<typeof RoamDb.getBlockOrder>
     const getChildBlockUids = RoamDb.getChildBlockUids as jest.MockedFunction<typeof RoamDb.getChildBlockUids>
     const getFocusedBlock = RoamDb.getFocusedBlock as jest.MockedFunction<typeof RoamDb.getFocusedBlock>
+    const getPageByName = RoamDb.getPageByName as jest.MockedFunction<typeof RoamDb.getPageByName>
     const getParentBlockUid = RoamDb.getParentBlockUid as jest.MockedFunction<typeof RoamDb.getParentBlockUid>
     const setBlockOpen = RoamDb.setBlockOpen as jest.MockedFunction<typeof RoamDb.setBlockOpen>
-    const leftClick = Mouse.leftClick as jest.MockedFunction<typeof Mouse.leftClick>
+    const getWindowIdForElement = RoamDb.getWindowIdForElement as jest.MockedFunction<
+        typeof RoamDb.getWindowIdForElement
+    >
     const generateUID = jest.fn()
 
     beforeEach(() => {
@@ -63,6 +67,8 @@ describe('Roam block creation helpers', () => {
         generateUID.mockReturnValue('new-block')
         getBlockByUid.mockReturnValue({':block/string': ''})
         getBlockLocationForElement.mockReturnValue(null)
+        getPageByName.mockReturnValue({':block/uid': 'page-uid'})
+        getWindowIdForElement.mockReturnValue('main-window')
         window.roamAlphaAPI = {
             util: {
                 generateUID,
@@ -160,42 +166,61 @@ describe('Roam block creation helpers', () => {
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'def456uvw', 'window-id': 'main-window'}, {start: 5})
     })
 
-    it('clicks the ghost block instead of using API focus when entering insert mode on an empty page', () => {
+    it('creates the first real block through the data API when entering insert mode on an empty page', async () => {
+        document.body.innerHTML =
+            '<div class="roam-article"><div class="rm-title-display"><span>Empty Page</span></div></div>'
         const target = document.createElement('div')
         target.id = 'block-input-ghost'
-        target.className = 'roam-block'
+        ;(document.querySelector('.roam-article') as HTMLElement).appendChild(target)
 
         Roam.focusBlockAtStart(target)
+        await Promise.resolve()
 
-        expect(leftClick).toHaveBeenCalledWith(target)
-        expect(getBlockLocationForElement).not.toHaveBeenCalled()
-        expect(focusBlock).not.toHaveBeenCalled()
+        expect(getPageByName).toHaveBeenCalledWith('Empty Page')
+        expect(createBlock).toHaveBeenCalledWith({
+            location: {parentUid: 'page-uid', order: 0},
+            block: {uid: 'new-block', string: ''},
+        })
+        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
     })
 
-    it('clicks the ghost block instead of looking up text length for append mode on an empty page', () => {
+    it('creates the first real block for append mode on an empty page', async () => {
+        document.body.innerHTML =
+            '<div class="roam-article"><div class="rm-title-display"><span>Empty Page</span></div></div>'
         const target = document.createElement('div')
         target.id = 'block-input-ghost'
-        target.className = 'roam-block'
+        ;(document.querySelector('.roam-article') as HTMLElement).appendChild(target)
 
         Roam.focusBlockAtEnd(target)
+        await Promise.resolve()
 
-        expect(leftClick).toHaveBeenCalledWith(target)
         expect(getBlockByUid).not.toHaveBeenCalled()
-        expect(focusBlock).not.toHaveBeenCalled()
+        expect(createBlock).toHaveBeenCalledWith({
+            location: {parentUid: 'page-uid', order: 0},
+            block: {uid: 'new-block', string: ''},
+        })
+        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
     })
 
-    it('clicks the ghost block instead of creating a sibling via the data API on an empty page', async () => {
+    it('creates the first real block for block insertion commands on an empty page', async () => {
+        document.body.innerHTML =
+            '<div class="roam-article"><div class="rm-title-display"><span>Empty Page</span></div></div>'
         const target = document.createElement('div')
         target.id = 'block-input-ghost'
-        target.className = 'roam-block'
+        ;(document.querySelector('.roam-article') as HTMLElement).appendChild(target)
 
         await Roam.createBlockBelow(target)
         await Roam.createSiblingAbove(target)
 
-        expect(leftClick).toHaveBeenCalledTimes(2)
-        expect(leftClick).toHaveBeenNthCalledWith(1, target)
-        expect(leftClick).toHaveBeenNthCalledWith(2, target)
-        expect(createBlock).not.toHaveBeenCalled()
+        expect(createBlock).toHaveBeenCalledTimes(2)
+        expect(createBlock).toHaveBeenNthCalledWith(1, {
+            location: {parentUid: 'page-uid', order: 0},
+            block: {uid: 'new-block', string: ''},
+        })
+        expect(createBlock).toHaveBeenNthCalledWith(2, {
+            location: {parentUid: 'page-uid', order: 0},
+            block: {uid: 'new-block', string: ''},
+        })
         expect(getParentBlockUid).not.toHaveBeenCalled()
     })
 })

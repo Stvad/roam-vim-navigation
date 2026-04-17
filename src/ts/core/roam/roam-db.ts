@@ -132,28 +132,35 @@ export const RoamDb = {
         return this.getFocusedBlock()?.['block-uid'] ?? null
     },
 
-    getBlockLocationForElement(element: HTMLElement): RoamBlockLocation | null {
-        const uid = getBlockUid(element.id)
+    getWindowIdForElement(element: HTMLElement): string | null {
         const explicitWindowId = explicitWindowIdForElement(element)
         if (explicitWindowId) {
-            return {'block-uid': uid, 'window-id': explicitWindowId}
+            return explicitWindowId
         }
+
+        if (element.closest(Selectors.mainContent)) {
+            return mainWindowId
+        }
+
+        const sidebarWindowId = sidebarWindowIdForElement(element)
+        if (sidebarWindowId) {
+            return sidebarWindowId
+        }
+
+        return this.getFocusedBlock()?.['window-id'] ?? null
+    },
+
+    getBlockLocationForElement(element: HTMLElement): RoamBlockLocation | null {
+        const uid = getBlockUid(element.id)
+        const windowId = this.getWindowIdForElement(element)
+        if (!windowId) return null
 
         const focusedBlock = this.getFocusedBlock()
         if (focusedBlock?.['block-uid'] === uid) {
             return focusedBlock
         }
 
-        if (element.closest(Selectors.mainContent)) {
-            return {'block-uid': uid, 'window-id': mainWindowId}
-        }
-
-        const sidebarWindowId = sidebarWindowIdForElement(element)
-        if (sidebarWindowId) {
-            return {'block-uid': uid, 'window-id': sidebarWindowId}
-        }
-
-        return focusedBlock ? {...focusedBlock, 'block-uid': uid} : null
+        return {'block-uid': uid, 'window-id': windowId}
     },
 
     getParentBlockUid(childUid: string): string | null {
