@@ -20,7 +20,7 @@
         "lodash": "^4.17.21",
         "react": "^16.12.0",
         "react-dom": "^16.12.0",
-        "react-hotkeys": "^2.0.0"
+        "tinykeys": "^3.0.0"
     },
     "devDependencies": {
         "@types/dateformat": "^3.0.1",
@@ -29,17 +29,17 @@
         "@types/lodash": "^4.14.157",
         "@types/node": "^13.5.0",
         "@types/react-dom": "^16.9.5",
+        "@typescript-eslint/eslint-plugin": "^5.62.0",
+        "@typescript-eslint/parser": "^5.62.0",
+        "esbuild": "^0.28.0",
         "eslint": "^8.57.1",
         "eslint-config-prettier": "^8.10.0",
-        "esbuild": "^0.28.0",
         "husky": "^4.2.5",
         "jest": "^26.0.1",
         "jest-extended": "^0.11.5",
         "lint-staged": "^10.2.11",
         "prettier": "^2.0.5",
         "ts-jest": "^26.1.0",
-        "@typescript-eslint/eslint-plugin": "^5.62.0",
-        "@typescript-eslint/parser": "^5.62.0",
         "typescript": "^3.9.5"
     }
 }

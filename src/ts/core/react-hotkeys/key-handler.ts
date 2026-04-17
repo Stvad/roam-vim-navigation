@@ -1,4 +1,3 @@
-// @ts-ignore this internal import is needed to workaround a react-hotkeys issue
 import {KeySequence} from './key-sequence'
 
 /**

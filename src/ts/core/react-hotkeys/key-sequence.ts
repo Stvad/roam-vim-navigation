@@ -28,8 +28,7 @@ export class KeySequence {
     }
 
     /**
-     * @return a list of key sequence strings, in Mousetrap style:
-     *         https://github.com/greena13/react-hotkeys#defining-key-maps
+     * @return a space-separated key sequence string like `g g` or `shift+h`
      */
     toString(): string {
         return this.keyChords.join(' ')

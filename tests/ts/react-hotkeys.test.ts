@@ -1,48 +1,47 @@
-import {KeyChord, KeyChordString} from 'src/core/react-hotkeys/key-chord'
 import {KeySequence, KeySequenceString} from 'src/core/react-hotkeys/key-sequence'
 import {blockConcurrentHandlingOfSimulatedKeys, Handler} from 'src/core/react-hotkeys/key-handler'
+import {matchKeyBindingPress, parseKeybinding} from 'src/core/react-hotkeys/tinykeys-lib'
 import {delay} from 'src/core/common/async'
-import {
-    createSingleChordCaptureBindings,
-    keyChordFromEvent,
-    normalizeKeySequence,
-} from 'src/core/react-hotkeys/capture-hotkeys'
+import {createTinykeysKeyMap, toTinykeysKeySequence} from 'src/core/react-hotkeys/tinykeys'
 
-jest.mock('src/core/react-hotkeys/key-history')
-
-describe('Normalizing key chords to have a consistent format', () => {
-    const normalizeChord = (keyChordString: KeyChordString) => KeyChord.fromString(keyChordString).toString()
-
-    it('Lower cases the letter and adds shift', () => {
-        expect(normalizeChord('sHiFt+g')).toEqual('shift+g')
+describe('Converting key sequences for tinykeys', () => {
+    it('maps existing modifier aliases to tinykeys modifier names', () => {
+        expect(toTinykeysKeySequence('Shift+cmd+H')).toEqual('Shift+Meta+H')
     })
 
-    it('normalizes command aliases and modifier order for capture bindings', () => {
-        expect(normalizeKeySequence('Shift+cmd+H')).toEqual('command+shift+h')
+    it('maps special keys to browser key names tinykeys recognizes', () => {
+        expect(toTinykeysKeySequence('ctrl+alt+up')).toEqual('Control+Alt+ArrowUp')
+        expect(toTinykeysKeySequence('cmd+enter')).toEqual('Meta+Enter')
+        expect(toTinykeysKeySequence('g g')).toEqual('g g')
     })
 })
 
-describe('Capture phase hotkeys', () => {
-    it('matches an exact command+shift+h keydown without matching command+h', () => {
-        const commandShiftHHandler = jest.fn()
-        const captureBindings = createSingleChordCaptureBindings(
-            {MOVE_BLOCK_UP: 'command+shift+h'},
-            {MOVE_BLOCK_UP: commandShiftHHandler}
-        )
-
+describe('tinykeys matching behavior', () => {
+    it('matches command+shift+h without matching command+h', () => {
+        const [keyBindingPress] = parseKeybinding('Meta+Shift+H')
         const commandShiftHEvent = ({
+            code: 'KeyH',
             key: 'H',
-            metaKey: true,
-            shiftKey: true,
+            getModifierState: (modifier: string) => modifier === 'Meta' || modifier === 'Shift',
         } as unknown) as KeyboardEvent
         const commandHEvent = ({
+            code: 'KeyH',
             key: 'h',
-            metaKey: true,
-            shiftKey: false,
+            getModifierState: (modifier: string) => modifier === 'Meta',
         } as unknown) as KeyboardEvent
 
-        expect(captureBindings[keyChordFromEvent(commandShiftHEvent) ?? '']).toBe(commandShiftHHandler)
-        expect(captureBindings[keyChordFromEvent(commandHEvent) ?? '']).toBeUndefined()
+        expect(matchKeyBindingPress(commandShiftHEvent, keyBindingPress)).toBe(true)
+        expect(matchKeyBindingPress(commandHEvent, keyBindingPress)).toBe(false)
+    })
+})
+
+describe('Creating a tinykeys key map', () => {
+    it('adapts existing keybindings to tinykeys format', () => {
+        const moveBlockUp = jest.fn()
+        const keyMap = createTinykeysKeyMap({MOVE_BLOCK_UP: 'command+shift+h'}, {MOVE_BLOCK_UP: moveBlockUp})
+
+        expect(Object.keys(keyMap)).toEqual(['Meta+Shift+h'])
+        expect(keyMap['Meta+Shift+h']).toBeDefined()
     })
 })
 
