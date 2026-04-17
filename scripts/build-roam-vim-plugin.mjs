@@ -16,7 +16,7 @@ await mkdir(distDir, {recursive: true})
 await build({
     absWorkingDir: root,
     bundle: true,
-    entryPoints: ['src/ts/roam-vim-plugin/index.tsx'],
+    entryPoints: ['src/ts/roam-vim-plugin/index.ts'],
     format: 'esm',
     minify: false,
     outfile: extensionJs,

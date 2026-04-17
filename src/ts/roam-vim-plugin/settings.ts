@@ -164,10 +164,10 @@ const getModeGroupLabel = (group: string) => {
 
 const createSectionHeader = (id: string, label: string): PanelSetting => ({
     id,
-    name: label,
+    name: '',
     action: {
         type: 'reactComponent',
-        component: () => '',
+        component: () => label,
     },
 })
 

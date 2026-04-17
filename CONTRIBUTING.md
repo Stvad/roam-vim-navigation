@@ -43,7 +43,7 @@ npm run build
 
 - `src/ts/roam-vim-plugin/`: standalone Roam extension entrypoint, settings integration, and plugin wiring
 - `src/ts/core/features/vim-mode/`: Vim runtime, commands, view logic, and Roam-specific behavior
-- `src/ts/core/react-hotkeys/`: hotkey integration used by the plugin
+- `src/ts/core/hotkeys/`: hotkey integration used by the plugin
 - `src/ts/core/roam/`: Roam DOM and API helpers reused by the Vim feature
 - `tests/ts/`: Jest coverage for shared utilities, hotkeys, Vim behavior, and plugin settings
 - `scripts/build-roam-vim-plugin.mjs`: esbuild-based standalone extension bundle
