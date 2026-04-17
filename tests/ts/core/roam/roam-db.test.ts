@@ -46,6 +46,7 @@ describe('RoamDb', () => {
             },
             util: {
                 generateUID: jest.fn(),
+                dateToPageTitle: jest.fn(),
             },
         }
     })

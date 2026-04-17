@@ -53,6 +53,7 @@ interface RoamAlphaAPI {
 
     util: {
         generateUID(): string
+        dateToPageTitle(date: Date): string
     }
 }
 

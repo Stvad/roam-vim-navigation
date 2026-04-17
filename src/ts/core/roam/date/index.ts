@@ -30,6 +30,11 @@ const getOrdinalSuffix = (day: number) => {
 }
 
 const formatRoamDate = (date: Date) => {
+    const helper = window.roamAlphaAPI?.util?.dateToPageTitle
+    if (helper) {
+        return helper(date)
+    }
+
     const month = monthNames[date.getMonth()]
     const day = date.getDate()
     return `${month} ${day}${getOrdinalSuffix(day)}, ${date.getFullYear()}`

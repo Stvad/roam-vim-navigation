@@ -36,13 +36,25 @@ const KEY_ALIASES: Record<string, string> = {
 
 const normalizeModifier = (modifier: string) => MODIFIER_ALIASES[modifier.toLowerCase()] ?? modifier
 
+const toPhysicalKeyCode = (key: string): string | null => {
+    if (/^[a-z]$/i.test(key)) {
+        return `Key${key.toUpperCase()}`
+    }
+
+    if (/^[0-9]$/.test(key)) {
+        return `Digit${key}`
+    }
+
+    return null
+}
+
 const normalizeKey = (key: string) => {
     if (/^\(.+\)$/.test(key)) {
         return key
     }
 
     const lowerKey = key.toLowerCase()
-    return KEY_ALIASES[lowerKey] ?? key
+    return KEY_ALIASES[lowerKey] ?? toPhysicalKeyCode(key) ?? key
 }
 
 const toTinykeysPress = (press: string) => {
@@ -67,7 +79,7 @@ export const toTinykeysKeySequence = (keySequenceString: KeySequenceString) =>
 
 export const createTinykeysKeyMap = (
     keyMap: Dictionary<KeySequenceString>,
-    handlers: Dictionary<Handler>
+    handlers: Dictionary<Handler>,
 ): Dictionary<Handler> =>
     Object.keys(keyMap).reduce<Dictionary<Handler>>((tinykeysKeyMap, id) => {
         const keySequenceString = keyMap[id]
@@ -79,7 +91,7 @@ export const createTinykeysKeyMap = (
 
         tinykeysKeyMap[toTinykeysKeySequence(keySequenceString)] = guardAgainstSimulatedKeys(
             KeySequence.fromString(keySequenceString),
-            handler
+            handler,
         )
         return tinykeysKeyMap
     }, {})

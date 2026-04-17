@@ -7,32 +7,59 @@ import {createTinykeysKeyMap, toTinykeysKeySequence} from 'src/core/hotkeys/tiny
 
 describe('Converting key sequences for tinykeys', () => {
     it('maps existing modifier aliases to tinykeys modifier names', () => {
-        expect(toTinykeysKeySequence('Shift+cmd+H')).toEqual('Shift+Meta+H')
+        expect(toTinykeysKeySequence('Shift+cmd+H')).toEqual('Shift+Meta+KeyH')
+    })
+
+    it('maps character keys to physical key codes so modifier variants still match', () => {
+        expect(toTinykeysKeySequence('alt+z')).toEqual('Alt+KeyZ')
+        expect(toTinykeysKeySequence('ctrl+shift+2')).toEqual('Control+Shift+Digit2')
+        expect(toTinykeysKeySequence('g g')).toEqual('KeyG KeyG')
     })
 
     it('maps special keys to browser key names tinykeys recognizes', () => {
         expect(toTinykeysKeySequence('ctrl+alt+up')).toEqual('Control+Alt+ArrowUp')
         expect(toTinykeysKeySequence('cmd+enter')).toEqual('Meta+Enter')
-        expect(toTinykeysKeySequence('g g')).toEqual('g g')
     })
 })
 
 describe('tinykeys matching behavior', () => {
     it('matches command+shift+h without matching command+h', () => {
-        const [keyBindingPress] = parseKeybinding('Meta+Shift+H')
-        const commandShiftHEvent = ({
+        const [keyBindingPress] = parseKeybinding('Meta+Shift+KeyH')
+        const commandShiftHEvent = {
             code: 'KeyH',
             key: 'H',
             getModifierState: (modifier: string) => modifier === 'Meta' || modifier === 'Shift',
-        } as unknown) as KeyboardEvent
-        const commandHEvent = ({
+        } as unknown as KeyboardEvent
+        const commandHEvent = {
             code: 'KeyH',
             key: 'h',
             getModifierState: (modifier: string) => modifier === 'Meta',
-        } as unknown) as KeyboardEvent
+        } as unknown as KeyboardEvent
 
         expect(matchKeyBindingPress(commandShiftHEvent, keyBindingPress)).toBe(true)
         expect(matchKeyBindingPress(commandHEvent, keyBindingPress)).toBe(false)
+    })
+
+    it('matches alt+z on macOS using the physical key code when option changes the character', () => {
+        const [keyBindingPress] = parseKeybinding('Alt+KeyZ')
+        const optionZEvent = {
+            code: 'KeyZ',
+            key: 'Ω',
+            getModifierState: (modifier: string) => modifier === 'Alt',
+        } as unknown as KeyboardEvent
+
+        expect(matchKeyBindingPress(optionZEvent, keyBindingPress)).toBe(true)
+    })
+
+    it('matches ctrl+shift+2 using the physical digit key code', () => {
+        const [keyBindingPress] = parseKeybinding('Control+Shift+Digit2')
+        const hardRescheduleEvent = {
+            code: 'Digit2',
+            key: '@',
+            getModifierState: (modifier: string) => modifier === 'Control' || modifier === 'Shift',
+        } as unknown as KeyboardEvent
+
+        expect(matchKeyBindingPress(hardRescheduleEvent, keyBindingPress)).toBe(true)
     })
 })
 
@@ -41,8 +68,8 @@ describe('Creating a tinykeys key map', () => {
         const moveBlockUp = jest.fn()
         const keyMap = createTinykeysKeyMap({MOVE_BLOCK_UP: 'command+shift+h'}, {MOVE_BLOCK_UP: moveBlockUp})
 
-        expect(Object.keys(keyMap)).toEqual(['Meta+Shift+h'])
-        expect(keyMap['Meta+Shift+h']).toBeDefined()
+        expect(Object.keys(keyMap)).toEqual(['Meta+Shift+KeyH'])
+        expect(keyMap['Meta+Shift+KeyH']).toBeDefined()
     })
 })
 
