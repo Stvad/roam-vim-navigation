@@ -14,6 +14,7 @@ import {removeStyle} from 'src/core/common/css'
 
 let extensionAPI: RoamExtensionAPI | null = null
 let unregisterHotkeys = () => {}
+let unregisterLayoutChangeListener = () => {}
 
 const syncHintKeys = async () => {
     if (!extensionAPI) {
@@ -41,7 +42,7 @@ const renderHotkeys = async () => {
     const handlers = getShortcutHandlers(VIM_SHORTCUTS)
 
     unregisterHotkeys()
-    unregisterHotkeys = registerHotkeys({keyMap, handlers})
+    unregisterHotkeys = await registerHotkeys({keyMap, handlers})
 }
 
 const syncPluginState = async () => {
@@ -64,6 +65,16 @@ const onload = async ({extensionAPI: api}: OnloadArgs) => {
     extensionAPI = api
     await initializeSettings(api, VIM_SHORTCUTS)
     createSettingsPanel(api, VIM_SHORTCUTS, syncPluginState)
+
+    const keyboard = navigator.keyboard
+    if (keyboard) {
+        const onLayoutChange = () => {
+            void renderHotkeys()
+        }
+        keyboard.addEventListener('layoutchange', onLayoutChange)
+        unregisterLayoutChangeListener = () => keyboard.removeEventListener('layoutchange', onLayoutChange)
+    }
+
     await syncPluginState()
 }
 
@@ -74,6 +85,8 @@ const onunload = async () => {
 
     unregisterHotkeys()
     unregisterHotkeys = () => {}
+    unregisterLayoutChangeListener()
+    unregisterLayoutChangeListener = () => {}
     await resetHintKeyProvider()
     removeStyle('roam-toolkit-block-mode')
     removeStyle('roam-toolkit-block-mode--hint')

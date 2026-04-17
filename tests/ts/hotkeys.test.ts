@@ -5,6 +5,8 @@ import {guardAgainstSimulatedKeys, Handler} from 'src/core/hotkeys/simulation-gu
 import {delay} from 'src/core/common/async'
 import {createTinykeysKeyMap, toTinykeysKeySequence} from 'src/core/hotkeys/tinykeys'
 
+const createLayoutMap = (entries: Array<[string, string]>) => new Map(entries) as KeyboardLayoutMap
+
 describe('Converting key sequences for tinykeys', () => {
     it('maps existing modifier aliases to tinykeys modifier names', () => {
         expect(toTinykeysKeySequence('Shift+cmd+H')).toEqual('Shift+Meta+H')
@@ -19,6 +21,19 @@ describe('Converting key sequences for tinykeys', () => {
     it('maps digit bindings to physical Digit codes to preserve the old keyCode-style behavior', () => {
         expect(toTinykeysKeySequence('ctrl+shift+2')).toEqual('Control+Shift+(Digit2)')
         expect(toTinykeysKeySequence('shift+2')).toEqual('Shift+(Digit2)')
+    })
+
+    it('maps alt+letter bindings to the code that produces that logical letter in the current layout', () => {
+        const colemakLayoutMap = createLayoutMap([
+            ['KeyJ', 'y'],
+            ['KeyY', 'j'],
+        ])
+
+        expect(toTinykeysKeySequence('alt+y', colemakLayoutMap)).toEqual('Alt+KeyJ')
+    })
+
+    it('falls back to the original alt+letter binding when no layout mapping is available', () => {
+        expect(toTinykeysKeySequence('alt+y')).toEqual('Alt+y')
     })
 })
 
@@ -55,7 +70,7 @@ describe('tinykeys matching behavior', () => {
 describe('Creating a tinykeys key map', () => {
     it('adapts existing keybindings to tinykeys format', () => {
         const moveBlockUp = jest.fn()
-        const keyMap = createTinykeysKeyMap({MOVE_BLOCK_UP: 'command+shift+h'}, {MOVE_BLOCK_UP: moveBlockUp})
+        const keyMap = createTinykeysKeyMap(undefined, {MOVE_BLOCK_UP: 'command+shift+h'}, {MOVE_BLOCK_UP: moveBlockUp})
 
         expect(Object.keys(keyMap)).toEqual(['Meta+Shift+h'])
         expect(keyMap['Meta+Shift+h']).toBeDefined()
