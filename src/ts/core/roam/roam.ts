@@ -97,19 +97,29 @@ const ghostBlockContext = (targetBlock: HTMLElement) => {
     return {parentUid, windowId}
 }
 
-const materializeGhostBlock = async (targetBlock: HTMLElement): Promise<RoamBlockLocation | null> => {
+const materializeGhostBlock = async (
+    targetBlock: HTMLElement,
+    selection?: {start: number; end?: number},
+): Promise<RoamBlockLocation | null> => {
     const context = ghostBlockContext(targetBlock)
     if (!context) {
         return null
     }
 
     const newUid = await createEmptyBlock(context.parentUid, 0)
+    if (selection) {
+        focusCreatedBlock(context.windowId, newUid, selection)
+    }
+
     return {'block-uid': newUid, 'window-id': context.windowId}
 }
 
-const resolveBlockLocation = async (targetBlock?: HTMLElement): Promise<RoamBlockLocation | null> => {
+const resolveBlockLocation = async (
+    targetBlock?: HTMLElement,
+    ghostSelection?: {start: number; end?: number},
+): Promise<RoamBlockLocation | null> => {
     if (targetBlock && isGhostBlock(targetBlock)) {
-        return materializeGhostBlock(targetBlock)
+        return materializeGhostBlock(targetBlock, ghostSelection)
     }
 
     return blockLocation(targetBlock)
@@ -249,7 +259,7 @@ export const Roam = {
     },
 
     async createSiblingAbove(targetBlock?: HTMLElement) {
-        const focusedBlock = await resolveBlockLocation(targetBlock)
+        const focusedBlock = await resolveBlockLocation(targetBlock, {start: 0})
         if (!focusedBlock) return
 
         const currentUid = focusedBlock['block-uid']
@@ -261,7 +271,7 @@ export const Roam = {
     },
 
     async createBlockBelow(targetBlock?: HTMLElement) {
-        const focusedBlock = await resolveBlockLocation(targetBlock)
+        const focusedBlock = await resolveBlockLocation(targetBlock, {start: 0})
         if (!focusedBlock) return
 
         const currentUid = focusedBlock['block-uid']

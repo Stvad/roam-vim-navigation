@@ -224,7 +224,16 @@ describe('Roam block creation helpers', () => {
             block: {uid: 'inserted-below', string: ''},
         })
         expect(getParentBlockUid).toHaveBeenCalledWith('materialized-block')
-        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'inserted-below', 'window-id': 'main-window'}, {start: 0})
+        expect(focusBlock).toHaveBeenNthCalledWith(
+            1,
+            {'block-uid': 'materialized-block', 'window-id': 'main-window'},
+            {start: 0},
+        )
+        expect(focusBlock).toHaveBeenNthCalledWith(
+            2,
+            {'block-uid': 'inserted-below', 'window-id': 'main-window'},
+            {start: 0},
+        )
     })
 
     it('backfills the ghost block before creating a sibling above on an empty page', async () => {
@@ -247,7 +256,16 @@ describe('Roam block creation helpers', () => {
             block: {uid: 'inserted-above', string: ''},
         })
         expect(getParentBlockUid).toHaveBeenCalledWith('materialized-block')
-        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'inserted-above', 'window-id': 'main-window'}, {start: 0})
+        expect(focusBlock).toHaveBeenNthCalledWith(
+            1,
+            {'block-uid': 'materialized-block', 'window-id': 'main-window'},
+            {start: 0},
+        )
+        expect(focusBlock).toHaveBeenNthCalledWith(
+            2,
+            {'block-uid': 'inserted-above', 'window-id': 'main-window'},
+            {start: 0},
+        )
     })
 
     it('creates the first real block in the matching sidebar window for an empty sidebar page', async () => {
