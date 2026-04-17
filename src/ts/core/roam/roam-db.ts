@@ -32,12 +32,14 @@ const explicitWindowIdForElement = (element: HTMLElement): string | null => {
         (id, prefix) => (id.startsWith(prefix) ? id.slice(prefix.length) : id),
         element.id,
     )
+    const uidSuffix = `-${uid}`
 
-    if (!normalizedId.startsWith('render-block-path-') || !normalizedId.endsWith(`-${uid}`)) {
+    if (!normalizedId.endsWith(uidSuffix)) {
         return null
     }
 
-    return normalizedId.slice(0, -(uid.length + 1))
+    const windowId = normalizedId.slice(0, -uidSuffix.length)
+    return windowId.length > 0 ? windowId : null
 }
 
 const sidebarWindowIdForElement = (element: HTMLElement): string | null => {

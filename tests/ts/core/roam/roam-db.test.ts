@@ -124,11 +124,11 @@ describe('RoamDb', () => {
         expect(location).toEqual({'block-uid': 'def456uvw', 'window-id': 'window-two'})
     })
 
-    it('resolves reference-block locations from the explicit render-block-path window id', () => {
+    it('resolves block locations from explicit window ids embedded in the element id', () => {
         document.body.innerHTML = `
             <div class="rm-reference-item">
                 <textarea
-                    id="block-input-render-block-path-CEbj5I-GX-uuid64372780-883a-45d7-86e2-8b0a15acb467-CEbj5I-GX"
+                    id="block-input-6bJAKBYrpIcPZBpFEpexUwW3x5r1-body-outline-04-16-2026-j_1xdaGSR"
                     class="rm-block-input"></textarea>
             </div>
         `
@@ -136,13 +136,13 @@ describe('RoamDb', () => {
 
         const location = RoamDb.getBlockLocationForElement(
             document.getElementById(
-                'block-input-render-block-path-CEbj5I-GX-uuid64372780-883a-45d7-86e2-8b0a15acb467-CEbj5I-GX',
+                'block-input-6bJAKBYrpIcPZBpFEpexUwW3x5r1-body-outline-04-16-2026-j_1xdaGSR',
             ) as HTMLElement,
         )
 
         expect(location).toEqual({
-            'block-uid': 'CEbj5I-GX',
-            'window-id': 'render-block-path-CEbj5I-GX-uuid64372780-883a-45d7-86e2-8b0a15acb467',
+            'block-uid': 'j_1xdaGSR',
+            'window-id': '6bJAKBYrpIcPZBpFEpexUwW3x5r1-body-outline-04-16-2026',
         })
     })
 
