@@ -57,30 +57,62 @@ const focusSelection = (selection: Selection) => {
     RoamDb.focusBlock(focusedBlock, selectionParams(selection))
 }
 
-const createEmptyBlockAt = async (location: RoamBlockLocation, parentUid: string, order: number | 'last') => {
+const createEmptyBlock = async (parentUid: string, order: number | 'last') => {
     const newUid = window.roamAlphaAPI.util.generateUID()
     await RoamDb.createBlock({
         location: {parentUid, order},
         block: {uid: newUid, string: ''},
     })
-    RoamDb.focusBlock({...location, 'block-uid': newUid}, {start: 0})
+    return newUid
+}
+
+const focusCreatedBlock = (windowId: string, uid: string, selection: {start: number; end?: number} = {start: 0}) => {
+    RoamDb.focusBlock({'block-uid': uid, 'window-id': windowId}, selection)
+}
+
+const createAndFocusEmptyBlock = async (
+    windowId: string,
+    parentUid: string,
+    order: number | 'last',
+    selection: {start: number; end?: number} = {start: 0},
+) => {
+    const newUid = await createEmptyBlock(parentUid, order)
+    focusCreatedBlock(windowId, newUid, selection)
     return newUid
 }
 
 const createEmptyChildBlock = async (location: RoamBlockLocation, parentUid: string, order: 0 | 'last' = 'last') => {
     await RoamDb.setBlockOpen(parentUid, true)
-    return createEmptyBlockAt(location, parentUid, order)
+    return createAndFocusEmptyBlock(location['window-id'], parentUid, order)
 }
 
-const createGhostPageBlock = async (targetBlock: HTMLElement) => {
+const ghostBlockContext = (targetBlock: HTMLElement) => {
     const pageTitle = pageTitleForGhostBlock(targetBlock)
     const parentUid = pageTitle ? RoamDb.getPageByName(pageTitle)?.[':block/uid'] : null
-    const windowId = RoamDb.getWindowIdForElement(targetBlock)
+    const windowId = RoamDb.getPanelWindowIdForElement(targetBlock)
     if (!parentUid || !windowId) {
         return null
     }
 
-    return createEmptyBlockAt({'block-uid': parentUid, 'window-id': windowId}, parentUid, 0)
+    return {parentUid, windowId}
+}
+
+const materializeGhostBlock = async (targetBlock: HTMLElement): Promise<RoamBlockLocation | null> => {
+    const context = ghostBlockContext(targetBlock)
+    if (!context) {
+        return null
+    }
+
+    const newUid = await createEmptyBlock(context.parentUid, 0)
+    return {'block-uid': newUid, 'window-id': context.windowId}
+}
+
+const resolveBlockLocation = async (targetBlock?: HTMLElement): Promise<RoamBlockLocation | null> => {
+    if (targetBlock && isGhostBlock(targetBlock)) {
+        return materializeGhostBlock(targetBlock)
+    }
+
+    return blockLocation(targetBlock)
 }
 
 export const Roam = {
@@ -190,29 +222,20 @@ export const Roam = {
         focusSelection(updatedNode.selection)
     },
 
-    focusBlockSelection(targetBlock: HTMLElement, selection?: {start: number; end?: number}) {
-        if (isGhostBlock(targetBlock)) {
-            void createGhostPageBlock(targetBlock)
-            return
-        }
-
-        const location = blockLocation(targetBlock)
+    async focusBlockSelection(targetBlock: HTMLElement, selection?: {start: number; end?: number}) {
+        const location = await resolveBlockLocation(targetBlock)
         if (!location) return
 
         RoamDb.focusBlock(location, selection)
     },
 
-    focusBlockAtStart(targetBlock: HTMLElement) {
-        this.focusBlockSelection(targetBlock, {start: 0})
+    async focusBlockAtStart(targetBlock: HTMLElement) {
+        await this.focusBlockSelection(targetBlock, {start: 0})
     },
 
-    focusBlockAtEnd(targetBlock: HTMLElement) {
-        if (isGhostBlock(targetBlock)) {
-            void createGhostPageBlock(targetBlock)
-            return
-        }
-
-        this.focusBlockSelection(targetBlock, {start: blockText(targetBlock).length})
+    async focusBlockAtEnd(targetBlock: HTMLElement) {
+        const selection = isGhostBlock(targetBlock) ? {start: 0} : {start: blockText(targetBlock).length}
+        await this.focusBlockSelection(targetBlock, selection)
     },
 
     writeText(text: string) {
@@ -226,12 +249,7 @@ export const Roam = {
     },
 
     async createSiblingAbove(targetBlock?: HTMLElement) {
-        if (isGhostBlock(targetBlock)) {
-            await createGhostPageBlock(targetBlock)
-            return
-        }
-
-        const focusedBlock = blockLocation(targetBlock)
+        const focusedBlock = await resolveBlockLocation(targetBlock)
         if (!focusedBlock) return
 
         const currentUid = focusedBlock['block-uid']
@@ -239,16 +257,11 @@ export const Roam = {
         const order = RoamDb.getBlockOrder(currentUid)
         if (!parentUid || order === null) return
 
-        await createEmptyBlockAt(focusedBlock, parentUid, order)
+        await createAndFocusEmptyBlock(focusedBlock['window-id'], parentUid, order)
     },
 
     async createBlockBelow(targetBlock?: HTMLElement) {
-        if (isGhostBlock(targetBlock)) {
-            await createGhostPageBlock(targetBlock)
-            return
-        }
-
-        const focusedBlock = blockLocation(targetBlock)
+        const focusedBlock = await resolveBlockLocation(targetBlock)
         if (!focusedBlock) return
 
         const currentUid = focusedBlock['block-uid']
@@ -261,7 +274,7 @@ export const Roam = {
         const order = RoamDb.getBlockOrder(currentUid)
         if (!parentUid || order === null) return
 
-        await createEmptyBlockAt(focusedBlock, parentUid, order + 1)
+        await createAndFocusEmptyBlock(focusedBlock['window-id'], parentUid, order + 1)
     },
 
     async createSiblingBelow(targetBlock?: HTMLElement) {
@@ -273,7 +286,7 @@ export const Roam = {
         const order = RoamDb.getBlockOrder(currentUid)
         if (!parentUid || order === null) return
 
-        await createEmptyBlockAt(focusedBlock, parentUid, order + 1)
+        await createAndFocusEmptyBlock(focusedBlock['window-id'], parentUid, order + 1)
     },
 
     async createFirstChild() {

@@ -32,6 +32,7 @@ jest.mock('src/core/roam/roam-db', () => ({
         getBlockOrder: jest.fn(),
         getChildBlockUids: jest.fn(),
         getFocusedBlock: jest.fn(),
+        getPanelWindowIdForElement: jest.fn(),
         getPageByName: jest.fn(),
         getParentBlockUid: jest.fn(),
         getWindowIdForElement: jest.fn(),
@@ -52,12 +53,12 @@ describe('Roam block creation helpers', () => {
     const getBlockOrder = RoamDb.getBlockOrder as jest.MockedFunction<typeof RoamDb.getBlockOrder>
     const getChildBlockUids = RoamDb.getChildBlockUids as jest.MockedFunction<typeof RoamDb.getChildBlockUids>
     const getFocusedBlock = RoamDb.getFocusedBlock as jest.MockedFunction<typeof RoamDb.getFocusedBlock>
+    const getPanelWindowIdForElement = RoamDb.getPanelWindowIdForElement as jest.MockedFunction<
+        typeof RoamDb.getPanelWindowIdForElement
+    >
     const getPageByName = RoamDb.getPageByName as jest.MockedFunction<typeof RoamDb.getPageByName>
     const getParentBlockUid = RoamDb.getParentBlockUid as jest.MockedFunction<typeof RoamDb.getParentBlockUid>
     const setBlockOpen = RoamDb.setBlockOpen as jest.MockedFunction<typeof RoamDb.setBlockOpen>
-    const getWindowIdForElement = RoamDb.getWindowIdForElement as jest.MockedFunction<
-        typeof RoamDb.getWindowIdForElement
-    >
     const generateUID = jest.fn()
 
     beforeEach(() => {
@@ -66,9 +67,12 @@ describe('Roam block creation helpers', () => {
         setBlockOpen.mockResolvedValue(undefined)
         generateUID.mockReturnValue('new-block')
         getBlockByUid.mockReturnValue({':block/string': ''})
+        getBlockOrder.mockReturnValue(0)
+        getChildBlockUids.mockReturnValue([])
         getBlockLocationForElement.mockReturnValue(null)
+        getPanelWindowIdForElement.mockReturnValue('main-window')
         getPageByName.mockReturnValue({':block/uid': 'page-uid'})
-        getWindowIdForElement.mockReturnValue('main-window')
+        getParentBlockUid.mockReturnValue('page-uid')
         window.roamAlphaAPI = {
             util: {
                 generateUID,
@@ -141,26 +145,26 @@ describe('Roam block creation helpers', () => {
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
     })
 
-    it('focuses a selected block at the start without clicking it first', () => {
+    it('focuses a selected block at the start without clicking it first', async () => {
         const target = document.createElement('div')
         target.id = 'block-def456uvw'
 
         getBlockLocationForElement.mockReturnValue({'block-uid': 'def456uvw', 'window-id': 'sidebar-window'})
 
-        Roam.focusBlockAtStart(target)
+        await Roam.focusBlockAtStart(target)
 
         expect(getBlockLocationForElement).toHaveBeenCalledWith(target)
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'def456uvw', 'window-id': 'sidebar-window'}, {start: 0})
     })
 
-    it('focuses a selected block at the end using its current text length', () => {
+    it('focuses a selected block at the end using its current text length', async () => {
         const target = document.createElement('div')
         target.id = 'block-def456uvw'
 
         getBlockLocationForElement.mockReturnValue({'block-uid': 'def456uvw', 'window-id': 'main-window'})
         getBlockByUid.mockReturnValue({':block/string': 'hello'})
 
-        Roam.focusBlockAtEnd(target)
+        await Roam.focusBlockAtEnd(target)
 
         expect(getBlockByUid).toHaveBeenCalledWith('def456uvw')
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'def456uvw', 'window-id': 'main-window'}, {start: 5})
@@ -173,8 +177,7 @@ describe('Roam block creation helpers', () => {
         target.id = 'block-input-ghost'
         ;(document.querySelector('.roam-article') as HTMLElement).appendChild(target)
 
-        Roam.focusBlockAtStart(target)
-        await Promise.resolve()
+        await Roam.focusBlockAtStart(target)
 
         expect(getPageByName).toHaveBeenCalledWith('Empty Page')
         expect(createBlock).toHaveBeenCalledWith({
@@ -191,8 +194,7 @@ describe('Roam block creation helpers', () => {
         target.id = 'block-input-ghost'
         ;(document.querySelector('.roam-article') as HTMLElement).appendChild(target)
 
-        Roam.focusBlockAtEnd(target)
-        await Promise.resolve()
+        await Roam.focusBlockAtEnd(target)
 
         expect(getBlockByUid).not.toHaveBeenCalled()
         expect(createBlock).toHaveBeenCalledWith({
@@ -202,25 +204,73 @@ describe('Roam block creation helpers', () => {
         expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'main-window'}, {start: 0})
     })
 
-    it('creates the first real block for block insertion commands on an empty page', async () => {
+    it('backfills the ghost block before creating a sibling below on an empty page', async () => {
         document.body.innerHTML =
             '<div class="roam-article"><div class="rm-title-display"><span>Empty Page</span></div></div>'
         const target = document.createElement('div')
         target.id = 'block-input-ghost'
         ;(document.querySelector('.roam-article') as HTMLElement).appendChild(target)
+        generateUID.mockReturnValueOnce('materialized-block').mockReturnValueOnce('inserted-below')
 
         await Roam.createBlockBelow(target)
+
+        expect(createBlock).toHaveBeenCalledTimes(2)
+        expect(createBlock).toHaveBeenNthCalledWith(1, {
+            location: {parentUid: 'page-uid', order: 0},
+            block: {uid: 'materialized-block', string: ''},
+        })
+        expect(createBlock).toHaveBeenNthCalledWith(2, {
+            location: {parentUid: 'page-uid', order: 1},
+            block: {uid: 'inserted-below', string: ''},
+        })
+        expect(getParentBlockUid).toHaveBeenCalledWith('materialized-block')
+        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'inserted-below', 'window-id': 'main-window'}, {start: 0})
+    })
+
+    it('backfills the ghost block before creating a sibling above on an empty page', async () => {
+        document.body.innerHTML =
+            '<div class="roam-article"><div class="rm-title-display"><span>Empty Page</span></div></div>'
+        const target = document.createElement('div')
+        target.id = 'block-input-ghost'
+        ;(document.querySelector('.roam-article') as HTMLElement).appendChild(target)
+        generateUID.mockReturnValueOnce('materialized-block').mockReturnValueOnce('inserted-above')
+
         await Roam.createSiblingAbove(target)
 
         expect(createBlock).toHaveBeenCalledTimes(2)
         expect(createBlock).toHaveBeenNthCalledWith(1, {
             location: {parentUid: 'page-uid', order: 0},
-            block: {uid: 'new-block', string: ''},
+            block: {uid: 'materialized-block', string: ''},
         })
         expect(createBlock).toHaveBeenNthCalledWith(2, {
             location: {parentUid: 'page-uid', order: 0},
+            block: {uid: 'inserted-above', string: ''},
+        })
+        expect(getParentBlockUid).toHaveBeenCalledWith('materialized-block')
+        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'inserted-above', 'window-id': 'main-window'}, {start: 0})
+    })
+
+    it('creates the first real block in the matching sidebar window for an empty sidebar page', async () => {
+        document.body.innerHTML = `
+            <div class="sidebar-content">
+                <div>
+                    <div>
+                        <div class="window-headers"><div><a>Sidebar Page</a></div></div>
+                        <div id="block-input-ghost"></div>
+                    </div>
+                </div>
+            </div>
+        `
+        const target = document.getElementById('block-input-ghost') as HTMLElement
+        getPanelWindowIdForElement.mockReturnValue('sidebar-window')
+
+        await Roam.focusBlockAtStart(target)
+
+        expect(getPageByName).toHaveBeenCalledWith('Sidebar Page')
+        expect(createBlock).toHaveBeenCalledWith({
+            location: {parentUid: 'page-uid', order: 0},
             block: {uid: 'new-block', string: ''},
         })
-        expect(getParentBlockUid).not.toHaveBeenCalled()
+        expect(focusBlock).toHaveBeenCalledWith({'block-uid': 'new-block', 'window-id': 'sidebar-window'}, {start: 0})
     })
 })

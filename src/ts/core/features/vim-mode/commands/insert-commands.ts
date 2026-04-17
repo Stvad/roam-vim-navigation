@@ -4,12 +4,12 @@ import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
 
 const editBlock = async () => {
     const targetBlock = RoamBlock.selected().element
-    Roam.focusBlockAtStart(targetBlock)
+    await Roam.focusBlockAtStart(targetBlock)
 }
 
 const editBlockFromEnd = async () => {
     const targetBlock = RoamBlock.selected().element
-    Roam.focusBlockAtEnd(targetBlock)
+    await Roam.focusBlockAtEnd(targetBlock)
 }
 
 const insertBlockBefore = async () => {

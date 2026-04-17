@@ -132,12 +132,7 @@ export const RoamDb = {
         return this.getFocusedBlock()?.['block-uid'] ?? null
     },
 
-    getWindowIdForElement(element: HTMLElement): string | null {
-        const explicitWindowId = explicitWindowIdForElement(element)
-        if (explicitWindowId) {
-            return explicitWindowId
-        }
-
+    getPanelWindowIdForElement(element: HTMLElement): string | null {
         if (element.closest(Selectors.mainContent)) {
             return mainWindowId
         }
@@ -145,6 +140,20 @@ export const RoamDb = {
         const sidebarWindowId = sidebarWindowIdForElement(element)
         if (sidebarWindowId) {
             return sidebarWindowId
+        }
+
+        return null
+    },
+
+    getWindowIdForElement(element: HTMLElement): string | null {
+        const explicitWindowId = explicitWindowIdForElement(element)
+        if (explicitWindowId) {
+            return explicitWindowId
+        }
+
+        const panelWindowId = this.getPanelWindowIdForElement(element)
+        if (panelWindowId) {
+            return panelWindowId
         }
 
         return this.getFocusedBlock()?.['window-id'] ?? null
