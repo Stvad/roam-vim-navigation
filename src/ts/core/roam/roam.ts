@@ -32,6 +32,7 @@ const selectionParams = (selection: Selection) =>
 const focusedBlockLocation = (): RoamBlockLocation | null => RoamDb.getFocusedBlock()
 const blockLocation = (targetBlock?: HTMLElement): RoamBlockLocation | null =>
     targetBlock ? RoamDb.getBlockLocationForElement(targetBlock) : focusedBlockLocation()
+const isGhostBlock = (block?: HTMLElement): block is HTMLElement => block?.id === 'block-input-ghost'
 const blockText = (block: HTMLElement): string => RoamDb.getBlockByUid(getBlockUid(block.id))?.[':block/string'] || ''
 const blockHasText = (block: HTMLElement): boolean => Boolean(blockText(block))
 
@@ -167,6 +168,11 @@ export const Roam = {
     },
 
     focusBlockSelection(targetBlock: HTMLElement, selection?: {start: number; end?: number}) {
+        if (isGhostBlock(targetBlock)) {
+            void this.activateBlock(targetBlock)
+            return
+        }
+
         const location = blockLocation(targetBlock)
         if (!location) return
 
@@ -178,6 +184,11 @@ export const Roam = {
     },
 
     focusBlockAtEnd(targetBlock: HTMLElement) {
+        if (isGhostBlock(targetBlock)) {
+            void this.activateBlock(targetBlock)
+            return
+        }
+
         this.focusBlockSelection(targetBlock, {start: blockText(targetBlock).length})
     },
 
@@ -192,6 +203,11 @@ export const Roam = {
     },
 
     async createSiblingAbove(targetBlock?: HTMLElement) {
+        if (isGhostBlock(targetBlock)) {
+            await this.activateBlock(targetBlock)
+            return
+        }
+
         const focusedBlock = blockLocation(targetBlock)
         if (!focusedBlock) return
 
@@ -204,6 +220,11 @@ export const Roam = {
     },
 
     async createBlockBelow(targetBlock?: HTMLElement) {
+        if (isGhostBlock(targetBlock)) {
+            await this.activateBlock(targetBlock)
+            return
+        }
+
         const focusedBlock = blockLocation(targetBlock)
         if (!focusedBlock) return
 
