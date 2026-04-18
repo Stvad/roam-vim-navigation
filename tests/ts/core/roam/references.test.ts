@@ -86,6 +86,16 @@ describe('Reference breadcrumb expansion', () => {
         expect(leftClick).toHaveBeenCalledTimes(1)
         expect(scrollUntilBlockIsVisible).toHaveBeenCalledWith(block)
     })
+
+    it('does not require a standard panel for custom rendered inline references', async () => {
+        const block = renderInlineReferenceBlockWithoutPanel()
+        selected.mockReturnValue({element: block, id: block.id} as unknown as ReturnType<typeof RoamBlock.selected>)
+
+        await expect(expandLastBreadcrumb()).resolves.toBeUndefined()
+
+        expect(leftClick).toHaveBeenCalledTimes(1)
+        expect(fromBlock).not.toHaveBeenCalled()
+    })
 })
 
 const renderReferenceBlock = () => {
@@ -120,4 +130,19 @@ const renderInlineReferenceBlock = () => {
     `
 
     return document.getElementById('block-inline') as HTMLElement
+}
+
+const renderInlineReferenceBlockWithoutPanel = () => {
+    document.body.innerHTML = `
+        <div class="rm-inline-reference">
+            <div id="block-inline-custom" class="roam-block">
+                <div class="rm-zoom-path">
+                    <span class="rm-zoom-item-content">one</span>
+                    <span class="rm-zoom-item-content">two</span>
+                </div>
+            </div>
+        </div>
+    `
+
+    return document.getElementById('block-inline-custom') as HTMLElement
 }

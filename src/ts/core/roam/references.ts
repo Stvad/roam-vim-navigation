@@ -5,6 +5,7 @@ import {getActiveEditElement} from '../common/dom'
 import {delay} from '../common/async'
 import {VimRoamPanel} from '../features/vim-mode/roam/roam-vim-panel'
 import {Roam} from './roam'
+import {PANEL_SELECTOR} from './panel/roam-panel-utils'
 
 type BlockSelection = {
     start: number
@@ -53,6 +54,10 @@ const restoreSelectedBlock = async (selectedBlockId: string, selection: BlockSel
 
     if (selection) {
         await Roam.focusBlockSelection(selectedBlock, selection)
+        return
+    }
+
+    if (!selectedBlock.closest(PANEL_SELECTOR)) {
         return
     }
 
