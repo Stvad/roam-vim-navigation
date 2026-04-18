@@ -1,38 +1,85 @@
 import {Selectors} from './selectors'
 import {Mouse} from '../common/mouse'
 import {BlockElement, RoamBlock} from '../features/vim-mode/roam/roam-block'
+import {getActiveEditElement} from '../common/dom'
+import {VimRoamPanel} from '../features/vim-mode/roam/roam-vim-panel'
+import {Roam} from './roam'
 
-function expandReference(
+type BlockSelection = {
+    start: number
+    end: number
+}
+
+async function expandReference(
     wrapperSelector: string,
     breadcrumbSelector: string,
-    getClickElement: (parent: HTMLElement) => HTMLElement | null
+    getClickElement: (parent: HTMLElement) => HTMLElement | null,
 ) {
-    const referenceItem = RoamBlock.selected().element?.closest(wrapperSelector + ',' + Selectors.inlineReference)
+    const referenceItem = RoamBlock.selected().element?.closest(wrapperSelector)
     const breadcrumbs = referenceItem?.querySelector(breadcrumbSelector + ',' + Selectors.zoomPath)
+    if (!breadcrumbs) return false
 
     const clickElement = getClickElement(breadcrumbs as HTMLElement)
     if (!clickElement) return false
 
-    Mouse.leftClick(clickElement)
+    await Mouse.leftClick(clickElement)
     return true
 }
 
-export const expandLastBreadcrumb = () => {
-    expandReference(
-        Selectors.referenceItem,
-        Selectors.breadcrumbsContainer,
-        breadcrumbs => breadcrumbs.lastElementChild as HTMLElement
-    )
+const activeSelection = (selectedBlockId: string): BlockSelection | null => {
+    const editElement = getActiveEditElement()
+    if (!editElement || !('selectionStart' in editElement)) {
+        return null
+    }
 
-    expandReference(Selectors.inlineReference, Selectors.zoomPath, breadcrumbs => {
-        const nodes = breadcrumbs.querySelectorAll(Selectors.zoomItemContent)
-        return nodes[nodes.length - 1] as HTMLElement
-    })
+    const activeBlockId = editElement.closest(`${Selectors.block}, ${Selectors.blockInput}`)?.id
+    if (activeBlockId !== selectedBlockId) {
+        return null
+    }
+
+    const start = editElement.selectionStart ?? 0
+    return {
+        start,
+        end: editElement.selectionEnd ?? start,
+    }
+}
+
+const restoreSelectedBlock = async (selectedBlockId: string, selection: BlockSelection | null) => {
+    const selectedBlock = document.getElementById(selectedBlockId) as BlockElement | null
+    if (!selectedBlock) {
+        return
+    }
+
+    VimRoamPanel.fromBlock(selectedBlock).selectBlock(selectedBlockId)
+
+    if (selection) {
+        await Roam.focusBlockSelection(selectedBlock, selection)
+    }
+}
+
+export const expandLastBreadcrumb = async () => {
+    const selectedBlockId = RoamBlock.selected().id
+    const selection = activeSelection(selectedBlockId)
+
+    const expanded =
+        (await expandReference(
+            Selectors.referenceItem,
+            Selectors.breadcrumbsContainer,
+            breadcrumbs => breadcrumbs.lastElementChild as HTMLElement,
+        )) ||
+        (await expandReference(Selectors.inlineReference, Selectors.zoomPath, breadcrumbs => {
+            const nodes = breadcrumbs.querySelectorAll(Selectors.zoomItemContent)
+            return nodes[nodes.length - 1] as HTMLElement
+        }))
+
+    if (expanded) {
+        await restoreSelectedBlock(selectedBlockId, selection)
+    }
 }
 
 export const closePageReferenceView = () => {
     const referenceItem = RoamBlock.selected().element?.closest(
-        Selectors.pageReferenceItem + ',' + Selectors.inlineReference
+        Selectors.pageReferenceItem + ',' + Selectors.inlineReference,
     )
     const foldButton = referenceItem?.querySelector(Selectors.foldButton)
 
