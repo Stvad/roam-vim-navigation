@@ -27,26 +27,35 @@ const injectHintStyles = async () => {
     injectStyle(
         cssClasses.join('\n') +
             `
-        .${HINT_CSS_CLASS}::after {
+        .${HINT_CSS_CLASS} {
             position: relative;
-            top: 5px;
-            display: inline-block;
-            width: 18px;
-            margin-right: -18px;
-            height: 18px;
+        }
+        .${HINT_CSS_CLASS}::after {
+            position: absolute;
+            top: 0;
+            left: 100%;
+            margin-left: 2px;
+            transform: translateY(-35%);
+            display: block;
             font-size: 10px;
+            line-height: 1;
             font-style: italic;
             font-weight: bold;
             color: darkorchid;
             text-shadow: 1px 1px 0px orange;
             opacity: 0.7;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 1;
         }
         .check-container.${HINT_CSS_CLASS}::after {
-            position: absolute;
-            top: 3px;
+            top: 50%;
+            left: 50%;
+            margin-left: 0;
+            transform: translate(-50%, -50%);
         }
         `,
-        'roam-toolkit-block-mode--hint'
+        'roam-toolkit-block-mode--hint',
     )
 }
 

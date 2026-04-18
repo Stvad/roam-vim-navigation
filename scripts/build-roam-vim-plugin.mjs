@@ -22,7 +22,7 @@ await build({
     outfile: extensionJs,
     platform: 'browser',
     sourcemap: false,
-    target: ['es2019'],
+    target: ['es2022'],
     tsconfig: path.join(root, 'tsconfig.json'),
 })
 
