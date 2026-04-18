@@ -68,18 +68,21 @@ export const expandLastBreadcrumb = async () => {
     const selectedBlockId = RoamBlock.selected().id
     const selection = activeSelection(selectedBlockId)
 
-    const expanded =
-        (await expandReference(
-            Selectors.referenceItem,
-            Selectors.breadcrumbsContainer,
-            breadcrumbs => breadcrumbs.lastElementChild as HTMLElement,
-        )) ||
-        (await expandReference(Selectors.inlineReference, Selectors.zoomPath, breadcrumbs => {
+    const pageReferenceExpanded = await expandReference(
+        Selectors.referenceItem,
+        Selectors.breadcrumbsContainer,
+        breadcrumbs => breadcrumbs.lastElementChild as HTMLElement,
+    )
+    const inlineReferenceExpanded = await expandReference(
+        Selectors.inlineReference,
+        Selectors.zoomPath,
+        breadcrumbs => {
             const nodes = breadcrumbs.querySelectorAll(Selectors.zoomItemContent)
             return nodes[nodes.length - 1] as HTMLElement
-        }))
+        },
+    )
 
-    if (expanded) {
+    if (pageReferenceExpanded || inlineReferenceExpanded) {
         await delay(0)
         await restoreSelectedBlock(selectedBlockId, selection)
     }

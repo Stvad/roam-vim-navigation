@@ -77,13 +77,13 @@ describe('Reference breadcrumb expansion', () => {
         expect(focusBlockSelection).toHaveBeenCalledWith(block, {start: 2, end: 4})
     })
 
-    it('falls back to inline-reference breadcrumbs without clicking twice', async () => {
+    it('dispatches both breadcrumb clicks for inline references', async () => {
         const block = renderInlineReferenceBlock()
         selected.mockReturnValue({element: block, id: block.id} as unknown as ReturnType<typeof RoamBlock.selected>)
 
         await expandLastBreadcrumb()
 
-        expect(leftClick).toHaveBeenCalledTimes(1)
+        expect(leftClick).toHaveBeenCalledTimes(2)
         expect(scrollUntilBlockIsVisible).toHaveBeenCalledWith(block)
     })
 
@@ -93,7 +93,7 @@ describe('Reference breadcrumb expansion', () => {
 
         await expect(expandLastBreadcrumb()).resolves.toBeUndefined()
 
-        expect(leftClick).toHaveBeenCalledTimes(1)
+        expect(leftClick).toHaveBeenCalledTimes(2)
         expect(fromBlock).not.toHaveBeenCalled()
     })
 })
