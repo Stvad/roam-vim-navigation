@@ -180,11 +180,11 @@ export class VimRoamPanel {
     }
 
     private firstVisibleBlock(): BlockElement {
-        return assumeExists(this.blocks().find(blockIsVisible), 'Could not find any visible block')
+        return assumeExists(this.blocks().find(blockIntersectsViewport), 'Could not find any visible block')
     }
 
     private lastVisibleBlock() {
-        return assumeExists(findLast(this.blocks(), blockIsVisible), 'Could not find any visible block')
+        return assumeExists(findLast(this.blocks(), blockIntersectsViewport), 'Could not find any visible block')
     }
 }
 
@@ -204,8 +204,7 @@ const blockScrollOverflow = (block: BlockElement): number => {
     // Use width instead of height, cause it's larger and has less rounding error
     const scaledPadding = (width / block.offsetWidth) * SCROLL_PADDING
 
-    const {top: panelTop, height: panelHeight} = assumeExists(block.closest(PANEL_SELECTOR)).getBoundingClientRect()
-    const panelBottom = panelTop + panelHeight
+    const {panelTop, panelBottom} = panelBounds(block)
 
     const overflowTop = panelTop - top + scaledPadding
     if (overflowTop > 0) {
@@ -220,4 +219,17 @@ const blockScrollOverflow = (block: BlockElement): number => {
     return 0
 }
 
-const blockIsVisible = (block: BlockElement): boolean => blockScrollOverflow(block) === 0
+const panelBounds = (block: BlockElement) => {
+    const {top, height} = assumeExists(block.closest(PANEL_SELECTOR)).getBoundingClientRect()
+    return {
+        panelTop: top,
+        panelBottom: top + height,
+    }
+}
+
+const blockIntersectsViewport = (block: BlockElement): boolean => {
+    const {top, height} = block.getBoundingClientRect()
+    const bottom = top + height
+    const {panelTop, panelBottom} = panelBounds(block)
+    return bottom > panelTop && top < panelBottom
+}
