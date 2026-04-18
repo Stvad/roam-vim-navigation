@@ -12,11 +12,18 @@ let hintKeyProvider: HintKeyProvider = defaultHintKeyProvider
 const HINT_CSS_CLASS = 'roam-toolkit--hint'
 const hintCssClass = (n: number) => HINT_CSS_CLASS + n
 const HINT_CSS_CLASSES = HINT_IDS.map(hintCssClass)
+const HINT_HOST_CSS_CLASS = 'roam-toolkit--hint-host'
+const HINT_OVERLAY_CSS_CLASS = 'roam-toolkit--hint-overlay'
+const HINT_OVERLAY_CENTERED_CSS_CLASS = `${HINT_OVERLAY_CSS_CLASS}--centered`
+const hintOverlayCssClass = (n: number) => HINT_OVERLAY_CSS_CLASS + n
+
+const HINT_OVERLAY_X_OFFSET = 0
+const HINT_OVERLAY_Y_OFFSET = -1
 
 const hintCss = async (n: number) => {
     const key = await hintKeyProvider(n)
     return `
-        .${hintCssClass(n)}::after {
+        .${hintOverlayCssClass(n)}::after {
             content: "[${key}]";
         }
     `
@@ -27,15 +34,15 @@ const injectHintStyles = async () => {
     injectStyle(
         cssClasses.join('\n') +
             `
-        .${HINT_CSS_CLASS} {
+        .${HINT_HOST_CSS_CLASS} {
             position: relative;
         }
-        .${HINT_CSS_CLASS}::after {
+        .${HINT_OVERLAY_CSS_CLASS} {
             position: absolute;
-            top: 100%;
-            left: 100%;
-            margin-left: 2px;
-            transform: translateY(-65%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .${HINT_OVERLAY_CSS_CLASS}::after {
             display: block;
             font-size: 10px;
             line-height: 1;
@@ -44,14 +51,9 @@ const injectHintStyles = async () => {
             color: darkorchid;
             text-shadow: 1px 1px 0px orange;
             opacity: 0.7;
-            pointer-events: none;
             white-space: nowrap;
-            z-index: 1;
         }
-        .check-container.${HINT_CSS_CLASS}::after {
-            top: 50%;
-            left: 50%;
-            margin-left: 0;
+        .${HINT_OVERLAY_CENTERED_CSS_CLASS} {
             transform: translate(-50%, -50%);
         }
         `,
@@ -71,6 +73,8 @@ export const resetHintKeyProvider = async () => {
 }
 
 export const updateVimHints = (block: HTMLElement) => {
+    block.classList.add(HINT_HOST_CSS_CLASS)
+
     // button is for reference counts
     const clickableSelectors = [
         Selectors.link,
@@ -83,13 +87,61 @@ export const updateVimHints = (block: HTMLElement) => {
     const links = block.querySelectorAll(clickableSelectors.join(', '))
 
     links.forEach((link, i) => {
+        if (i >= HINT_IDS.length) {
+            return
+        }
+
         link.classList.add(HINT_CSS_CLASS, hintCssClass(i))
+        block.appendChild(createHintOverlay(link, block, i))
     })
 }
 
 export const clearVimHints = () => {
     const priorHints = document.querySelectorAll(`.${HINT_CSS_CLASS}`)
     priorHints.forEach(selection => selection.classList.remove(HINT_CSS_CLASS, ...HINT_CSS_CLASSES))
+    document.querySelectorAll(`.${HINT_HOST_CSS_CLASS}`).forEach(block => block.classList.remove(HINT_HOST_CSS_CLASS))
+    document.querySelectorAll(`.${HINT_OVERLAY_CSS_CLASS}`).forEach(overlay => overlay.remove())
 }
 
 export const getHint = (n: number): HTMLElement | null => document.querySelector(`.${hintCssClass(n)}`)
+
+const createHintOverlay = (hintTarget: Element, block: HTMLElement, hintId: number) => {
+    const overlay = document.createElement('span')
+    overlay.classList.add(HINT_OVERLAY_CSS_CLASS, hintOverlayCssClass(hintId))
+    overlay.setAttribute('aria-hidden', 'true')
+
+    const blockRect = block.getBoundingClientRect()
+    const {left, top, centered} = getHintOverlayPosition(hintTarget, blockRect)
+
+    overlay.style.left = `${left}px`
+    overlay.style.top = `${top}px`
+
+    if (centered) {
+        overlay.classList.add(HINT_OVERLAY_CENTERED_CSS_CLASS)
+    }
+
+    return overlay
+}
+
+const getHintOverlayPosition = (hintTarget: Element, blockRect: DOMRect) => {
+    if (hintTarget.matches(Selectors.checkbox)) {
+        const rect = hintTarget.getBoundingClientRect()
+        return {
+            centered: true,
+            left: rect.left - blockRect.left + rect.width / 2,
+            top: rect.top - blockRect.top + rect.height / 2,
+        }
+    }
+
+    const rect = getLastClientRect(hintTarget) ?? hintTarget.getBoundingClientRect()
+    return {
+        centered: false,
+        left: rect.right - blockRect.left + HINT_OVERLAY_X_OFFSET,
+        top: rect.bottom - blockRect.top + HINT_OVERLAY_Y_OFFSET,
+    }
+}
+
+const getLastClientRect = (hintTarget: Element): DOMRect | null => {
+    const visibleRects = Array.from(hintTarget.getClientRects()).filter(rect => rect.width > 0 || rect.height > 0)
+    return visibleRects.at(-1) ?? null
+}
