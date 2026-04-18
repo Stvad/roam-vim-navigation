@@ -28,6 +28,7 @@ describe('Vim hint view', () => {
         expect(style?.innerHTML).toContain('position: relative;')
         expect(style?.innerHTML).toContain('.roam-toolkit--hint::after {')
         expect(style?.innerHTML).toContain('position: absolute;')
+        expect(style?.innerHTML).toContain('top: 100%;')
         expect(style?.innerHTML).toContain('pointer-events: none;')
         expect(style?.innerHTML).toContain('white-space: nowrap;')
 

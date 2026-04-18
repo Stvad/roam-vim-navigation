@@ -32,10 +32,10 @@ const injectHintStyles = async () => {
         }
         .${HINT_CSS_CLASS}::after {
             position: absolute;
-            top: 0;
+            top: 100%;
             left: 100%;
             margin-left: 2px;
-            transform: translateY(-35%);
+            transform: translateY(-65%);
             display: block;
             font-size: 10px;
             line-height: 1;
