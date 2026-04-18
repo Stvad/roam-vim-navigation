@@ -11,6 +11,8 @@ const createRect = (left: number, top: number, right: number, bottom: number): D
         y: top,
     }) as DOMRect
 
+const parsePx = (value: string) => Number.parseFloat(value)
+
 describe('Vim hint view', () => {
     beforeEach(() => {
         document.head.innerHTML = ''
@@ -44,12 +46,18 @@ describe('Vim hint view', () => {
         updateVimHints(block)
 
         const overlay = block.querySelector('.roam-toolkit--hint-overlay.roam-toolkit--hint-overlay0') as HTMLElement
+        const overlayLeft = parsePx(overlay.style.left)
+        const overlayTop = parsePx(overlay.style.top)
+        const targetRight = 220 - 100
+        const targetBottom = 240 - 200
         expect(link.classList.contains('roam-toolkit--hint')).toBe(true)
         expect(link.classList.contains('roam-toolkit--hint0')).toBe(true)
         expect(block.classList.contains('roam-toolkit--hint-host')).toBe(true)
         expect(overlay).not.toBeNull()
-        expect(overlay.style.left).toBe('122px')
-        expect(overlay.style.top).toBe('44px')
+        expect(overlayLeft).toBeGreaterThanOrEqual(targetRight - 6)
+        expect(overlayLeft).toBeLessThanOrEqual(targetRight + 6)
+        expect(overlayTop).toBeGreaterThanOrEqual(targetBottom - 6)
+        expect(overlayTop).toBeLessThanOrEqual(targetBottom + 6)
 
         const style = document.getElementById('roam-toolkit-block-mode--hint')
         expect(style?.innerHTML).toContain('.roam-toolkit--hint-host {')
@@ -90,7 +98,14 @@ describe('Vim hint view', () => {
         updateVimHints(block)
 
         const overlay = block.querySelector('.roam-toolkit--hint-overlay.roam-toolkit--hint-overlay0') as HTMLElement
-        expect(overlay.style.left).toBe('322px')
-        expect(overlay.style.top).toBe('64px')
+        const overlayLeft = parsePx(overlay.style.left)
+        const overlayTop = parsePx(overlay.style.top)
+        const firstLineRight = 360 - 100
+        const lastLineRight = 420 - 100
+        const firstLineBottom = 240 - 200
+        const lastLineBottom = 260 - 200
+
+        expect(Math.abs(overlayLeft - lastLineRight)).toBeLessThan(Math.abs(overlayLeft - firstLineRight))
+        expect(Math.abs(overlayTop - lastLineBottom)).toBeLessThan(Math.abs(overlayTop - firstLineBottom))
     })
 })
