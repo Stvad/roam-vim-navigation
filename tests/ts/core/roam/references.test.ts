@@ -39,12 +39,12 @@ describe('Reference breadcrumb expansion', () => {
     const leftClick = Mouse.leftClick as jest.MockedFunction<typeof Mouse.leftClick>
     const fromBlock = VimRoamPanel.fromBlock as jest.MockedFunction<typeof VimRoamPanel.fromBlock>
     const focusBlockSelection = Roam.focusBlockSelection as jest.MockedFunction<typeof Roam.focusBlockSelection>
-    const selectBlock = jest.fn()
+    const scrollUntilBlockIsVisible = jest.fn()
 
     beforeEach(() => {
         jest.clearAllMocks()
         document.body.innerHTML = ''
-        fromBlock.mockReturnValue({selectBlock} as unknown as ReturnType<typeof VimRoamPanel.fromBlock>)
+        fromBlock.mockReturnValue({scrollUntilBlockIsVisible} as unknown as ReturnType<typeof VimRoamPanel.fromBlock>)
     })
 
     it('reselects the current block after expanding a page-reference breadcrumb', async () => {
@@ -55,7 +55,7 @@ describe('Reference breadcrumb expansion', () => {
 
         expect(leftClick).toHaveBeenCalledTimes(1)
         expect(fromBlock).toHaveBeenCalledWith(block)
-        expect(selectBlock).toHaveBeenCalledWith(block.id)
+        expect(scrollUntilBlockIsVisible).toHaveBeenCalledWith(block)
         expect(focusBlockSelection).not.toHaveBeenCalled()
     })
 
@@ -73,7 +73,7 @@ describe('Reference breadcrumb expansion', () => {
 
         await expandLastBreadcrumb()
 
-        expect(selectBlock).toHaveBeenCalledWith(block.id)
+        expect(scrollUntilBlockIsVisible).not.toHaveBeenCalled()
         expect(focusBlockSelection).toHaveBeenCalledWith(block, {start: 2, end: 4})
     })
 
@@ -84,7 +84,7 @@ describe('Reference breadcrumb expansion', () => {
         await expandLastBreadcrumb()
 
         expect(leftClick).toHaveBeenCalledTimes(1)
-        expect(selectBlock).toHaveBeenCalledWith(block.id)
+        expect(scrollUntilBlockIsVisible).toHaveBeenCalledWith(block)
     })
 })
 

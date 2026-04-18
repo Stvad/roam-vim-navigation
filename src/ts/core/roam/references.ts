@@ -2,6 +2,7 @@ import {Selectors} from './selectors'
 import {Mouse} from '../common/mouse'
 import {BlockElement, RoamBlock} from '../features/vim-mode/roam/roam-block'
 import {getActiveEditElement} from '../common/dom'
+import {delay} from '../common/async'
 import {VimRoamPanel} from '../features/vim-mode/roam/roam-vim-panel'
 import {Roam} from './roam'
 
@@ -15,7 +16,7 @@ async function expandReference(
     breadcrumbSelector: string,
     getClickElement: (parent: HTMLElement) => HTMLElement | null,
 ) {
-    const referenceItem = RoamBlock.selected().element?.closest(wrapperSelector)
+    const referenceItem = RoamBlock.selected().element?.closest(wrapperSelector + ',' + Selectors.inlineReference)
     const breadcrumbs = referenceItem?.querySelector(breadcrumbSelector + ',' + Selectors.zoomPath)
     if (!breadcrumbs) return false
 
@@ -50,11 +51,12 @@ const restoreSelectedBlock = async (selectedBlockId: string, selection: BlockSel
         return
     }
 
-    VimRoamPanel.fromBlock(selectedBlock).selectBlock(selectedBlockId)
-
     if (selection) {
         await Roam.focusBlockSelection(selectedBlock, selection)
+        return
     }
+
+    VimRoamPanel.fromBlock(selectedBlock).scrollUntilBlockIsVisible(selectedBlock)
 }
 
 export const expandLastBreadcrumb = async () => {
@@ -73,6 +75,7 @@ export const expandLastBreadcrumb = async () => {
         }))
 
     if (expanded) {
+        await delay(0)
         await restoreSelectedBlock(selectedBlockId, selection)
     }
 }
