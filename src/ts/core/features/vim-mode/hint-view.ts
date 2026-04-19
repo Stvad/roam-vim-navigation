@@ -1,5 +1,6 @@
 import {injectStyle} from 'src/core/common/css'
 import {Selectors} from 'src/core/roam/selectors'
+import {getLastClientRect} from './hint-geometry'
 
 export const HINT_IDS = [0, 1, 2, 3, 4, 5, 6]
 export const DEFAULT_HINT_KEYS = ['q', 'w', 'e', 'r', 't', 'f', 'b']
@@ -139,9 +140,4 @@ const getHintOverlayPosition = (hintTarget: Element, blockRect: DOMRect) => {
         left: rect.right - blockRect.left + HINT_OVERLAY_X_OFFSET,
         top: rect.bottom - blockRect.top + HINT_OVERLAY_Y_OFFSET,
     }
-}
-
-const getLastClientRect = (hintTarget: Element): DOMRect | null => {
-    const visibleRects = Array.from(hintTarget.getClientRects()).filter(rect => rect.width > 0 || rect.height > 0)
-    return visibleRects.at(-1) ?? null
 }

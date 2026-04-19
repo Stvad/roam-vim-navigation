@@ -3,6 +3,7 @@ import {getPrimaryHintShortcut, startVimMode, stopVimMode, VIM_SHORTCUTS} from '
 import {
     createSettingsPanel,
     getCurrentKeyMap,
+    getKeyboardLayout,
     getShortcutHandlers,
     getShortcutValue,
     initializeSettings,
@@ -10,6 +11,12 @@ import {
 } from './settings'
 import {isVimModeOn} from 'src/core/features/vim-mode/vim-init'
 import {DEFAULT_HINT_KEYS, resetHintKeyProvider, setHintKeyProvider} from 'src/core/features/vim-mode/hint-view'
+import {
+    PAGE_HINT_ALPHABETS,
+    resetPageHintAlphabet,
+    setPageHintAlphabet,
+    stopPageHintSession,
+} from 'src/core/features/vim-mode/page-hint-view'
 import {removeStyle} from 'src/core/common/css'
 
 let extensionAPI: RoamExtensionAPI | null = null
@@ -74,6 +81,9 @@ const syncHintKeys = async () => {
 
         return getShortcutValue(api, shortcut)
     })
+
+    const keyboardLayout = await getKeyboardLayout(api)
+    setPageHintAlphabet(PAGE_HINT_ALPHABETS[keyboardLayout])
 }
 
 const renderHotkeys = async () => {
@@ -123,8 +133,11 @@ const onunload = async () => {
     unregisterLayoutChangeListener()
     unregisterLayoutChangeListener = () => {}
     await resetHintKeyProvider()
+    resetPageHintAlphabet()
+    stopPageHintSession()
     removeStyle('roam-toolkit-block-mode')
     removeStyle('roam-toolkit-block-mode--hint')
+    removeStyle('roam-toolkit-block-mode--page-hint')
     extensionAPI = null
 }
 

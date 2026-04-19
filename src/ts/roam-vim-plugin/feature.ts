@@ -10,6 +10,7 @@ import {BlockManipulationCommands} from 'src/core/features/vim-mode/commands/blo
 import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
 import {HintCommands} from 'src/core/features/vim-mode/commands/hint-commands'
 import {EditCommands} from 'src/core/features/vim-mode/commands/edit-commands'
+import {PageHintCommands} from 'src/core/features/vim-mode/commands/page-hint-commands'
 import {Shortcut} from 'src/core/features/vim-mode/types'
 
 export const VIM_SHORTCUTS: Shortcut[] = [
@@ -23,6 +24,7 @@ export const VIM_SHORTCUTS: Shortcut[] = [
     ...VisualCommands,
     ...BlockManipulationCommands,
     ...HintCommands,
+    ...PageHintCommands,
     ...EditCommands,
 ]
 
