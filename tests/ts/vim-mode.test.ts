@@ -25,6 +25,10 @@ jest.mock('src/core/features/vim-mode/roam/roam-block', () => ({
     },
 }))
 
+jest.mock('src/core/features/vim-mode/page-hint-state', () => ({
+    isPageHintSessionActive: jest.fn(),
+}))
+
 jest.mock('src/core/roam/roam-db', () => ({
     RoamDb: {
         focusBlock: jest.fn(),
@@ -45,6 +49,7 @@ jest.mock('src/core/roam/roam', () => ({
 
 import {getActiveEditElement} from 'src/core/common/dom'
 import {BlockManipulationCommands} from 'src/core/features/vim-mode/commands/block-manipulation-commands'
+import {isPageHintSessionActive} from 'src/core/features/vim-mode/page-hint-state'
 import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
 import {nmap} from 'src/core/features/vim-mode/vim'
 import {Roam} from 'src/core/roam/roam'
@@ -58,6 +63,7 @@ describe('Vim mode shortcuts', () => {
     const mockGetChildBlockUids = RoamDb.getChildBlockUids as jest.MockedFunction<typeof RoamDb.getChildBlockUids>
     const mockGetFocusedBlock = RoamDb.getFocusedBlock as jest.MockedFunction<typeof RoamDb.getFocusedBlock>
     const mockGetParentBlockUid = RoamDb.getParentBlockUid as jest.MockedFunction<typeof RoamDb.getParentBlockUid>
+    const mockIsPageHintSessionActive = isPageHintSessionActive as jest.MockedFunction<typeof isPageHintSessionActive>
     const mockReorderBlocks = RoamDb.reorderBlocks as jest.MockedFunction<typeof RoamDb.reorderBlocks>
     const mockSelectedBlock = RoamBlock.selected as jest.MockedFunction<typeof RoamBlock.selected>
     const mockUpdateVimView = updateVimView as jest.MockedFunction<typeof updateVimView>
@@ -66,6 +72,7 @@ describe('Vim mode shortcuts', () => {
         jest.clearAllMocks()
         document.body.innerHTML = ''
         mockGetActiveEditElement.mockReturnValue(null)
+        mockIsPageHintSessionActive.mockReturnValue(false)
         mockReorderBlocks.mockResolvedValue(undefined)
     })
 
@@ -73,12 +80,12 @@ describe('Vim mode shortcuts', () => {
         const handler = jest.fn()
         const shortcut = nmap('cmd+enter', 'Toggle done', handler)
         const nativeEvent = {stopImmediatePropagation: jest.fn()}
-        const event = ({
+        const event = {
             nativeEvent,
             preventDefault: jest.fn(),
             stopImmediatePropagation: jest.fn(),
             stopPropagation: jest.fn(),
-        } as unknown) as KeyboardEvent
+        } as unknown as KeyboardEvent
 
         await shortcut.onPress(event)
 
@@ -94,12 +101,12 @@ describe('Vim mode shortcuts', () => {
         const handler = jest.fn()
         const shortcut = nmap('cmd+enter', 'Toggle done', handler, {consumeEvent: true})
         const nativeEvent = {stopImmediatePropagation: jest.fn()}
-        const event = ({
+        const event = {
             nativeEvent,
             preventDefault: jest.fn(),
             stopImmediatePropagation: jest.fn(),
             stopPropagation: jest.fn(),
-        } as unknown) as KeyboardEvent
+        } as unknown as KeyboardEvent
 
         await shortcut.onPress(event)
 
@@ -116,11 +123,30 @@ describe('Vim mode shortcuts', () => {
 
         const handler = jest.fn()
         const shortcut = nmap('cmd+enter', 'Toggle done', handler)
-        const event = ({
+        const event = {
             preventDefault: jest.fn(),
             stopImmediatePropagation: jest.fn(),
             stopPropagation: jest.fn(),
-        } as unknown) as KeyboardEvent
+        } as unknown as KeyboardEvent
+
+        await shortcut.onPress(event)
+
+        expect(event.preventDefault).not.toHaveBeenCalled()
+        expect(event.stopPropagation).not.toHaveBeenCalled()
+        expect(handler).not.toHaveBeenCalled()
+        expect(mockUpdateVimView).not.toHaveBeenCalled()
+    })
+
+    it('ignores normal mode shortcuts while page hint mode is active', async () => {
+        mockIsPageHintSessionActive.mockReturnValue(true)
+
+        const handler = jest.fn()
+        const shortcut = nmap('a', 'Click Selection', handler)
+        const event = {
+            preventDefault: jest.fn(),
+            stopImmediatePropagation: jest.fn(),
+            stopPropagation: jest.fn(),
+        } as unknown as KeyboardEvent
 
         await shortcut.onPress(event)
 
@@ -139,7 +165,7 @@ describe('Vim mode shortcuts', () => {
 
     it('consumes move-block shortcuts in insert mode', async () => {
         mockGetActiveEditElement.mockReturnValue(document.createElement('textarea'))
-        mockSelectedBlock.mockReturnValue(({id: 'block-abc123xyz'} as unknown) as ReturnType<typeof RoamBlock.selected>)
+        mockSelectedBlock.mockReturnValue({id: 'block-abc123xyz'} as unknown as ReturnType<typeof RoamBlock.selected>)
         mockGetParentBlockUid.mockReturnValue('parent123')
         mockGetBlockOrder.mockReturnValue(1)
         mockGetChildBlockUids.mockReturnValue(['first1111', 'abc123xyz', 'third3333'])
@@ -150,12 +176,12 @@ describe('Vim mode shortcuts', () => {
 
         const moveBlockUpShortcut = BlockManipulationCommands[0]
         const nativeEvent = {stopImmediatePropagation: jest.fn()}
-        const event = ({
+        const event = {
             nativeEvent,
             preventDefault: jest.fn(),
             stopImmediatePropagation: jest.fn(),
             stopPropagation: jest.fn(),
-        } as unknown) as KeyboardEvent
+        } as unknown as KeyboardEvent
 
         await moveBlockUpShortcut.onPress(event)
 

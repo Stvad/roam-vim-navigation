@@ -5,15 +5,21 @@ import {delay, repeatAsync} from 'src/core/common/async'
 import {VimRoamPanel} from 'src/core/features/vim-mode/roam/roam-vim-panel'
 import {Keyboard} from 'src/core/common/keyboard'
 import {RoamHighlight} from 'src/core/features/vim-mode/roam/roam-highlight'
+import {isPageHintSessionActive} from 'src/core/features/vim-mode/page-hint-state'
 import {Shortcut} from './types'
 
 export enum Mode {
     INSERT,
     VISUAL,
     NORMAL,
+    HINT,
 }
 
 export const getMode = () => {
+    if (isPageHintSessionActive()) {
+        return Mode.HINT
+    }
+
     if (getActiveEditElement()) {
         return Mode.INSERT
     }
@@ -36,7 +42,7 @@ type CommandMapper = (
     key: string,
     label: string,
     onPress: (mode: Mode, event: KeyboardEvent) => void,
-    params?: CommandMapperParams
+    params?: CommandMapperParams,
 ) => Shortcut
 
 type CommandMapperParams = {
@@ -59,24 +65,26 @@ const consumeKeyboardEvent = (event: KeyboardEvent) => {
 const shortcutId = (label: string, key: string) => `blockNavigationMode_${label}_${key}`
 const modeLabel = (mode: Mode) => Mode[mode].toLowerCase()
 
-const _map = (modes: Mode[]): CommandMapper => (key, label, onPress, params = {}) => ({
-    type: 'shortcut',
-    id: shortcutId(label, key),
-    label,
-    initValue: key,
-    modes: modes.map(modeLabel),
-    consumeEvent: params.consumeEvent,
-    onPress: async event => {
-        const mode = getMode()
-        if (modes.includes(mode)) {
-            if (params.consumeEvent) {
-                consumeKeyboardEvent(event)
+const _map =
+    (modes: Mode[]): CommandMapper =>
+    (key, label, onPress, params = {}) => ({
+        type: 'shortcut',
+        id: shortcutId(label, key),
+        label,
+        initValue: key,
+        modes: modes.map(modeLabel),
+        consumeEvent: params.consumeEvent,
+        onPress: async event => {
+            const mode = getMode()
+            if (modes.includes(mode)) {
+                if (params.consumeEvent) {
+                    consumeKeyboardEvent(event)
+                }
+                await onPress(mode, event)
+                updateVimView()
             }
-            await onPress(mode, event)
-            updateVimView()
-        }
-    },
-})
+        },
+    })
 
 export const map: CommandMapper = _map([Mode.NORMAL, Mode.VISUAL, Mode.INSERT])
 export const nmap: CommandMapper = _map([Mode.NORMAL])
@@ -91,10 +99,10 @@ export const RoamVim = {
         }
         if (mode === Mode.VISUAL) {
             await repeatAsync(Math.abs(blocksToJump), () =>
-                Keyboard.simulateKey(blocksToJump > 0 ? Keyboard.DOWN_ARROW : Keyboard.UP_ARROW, 0, {shiftKey: true})
+                Keyboard.simulateKey(blocksToJump > 0 ? Keyboard.DOWN_ARROW : Keyboard.UP_ARROW, 0, {shiftKey: true}),
             )
             VimRoamPanel.selected().scrollUntilBlockIsVisible(
-                blocksToJump > 0 ? RoamHighlight.last() : RoamHighlight.first()
+                blocksToJump > 0 ? RoamHighlight.last() : RoamHighlight.first(),
             )
         }
     },

@@ -10,6 +10,7 @@ import {returnToNormalMode} from 'src/core/features/vim-mode/vim'
 import {updateVimView} from 'src/core/features/vim-mode/vim-view'
 
 import {getFirstClientRect, getLastClientRect, isElementVisibleInViewport} from './hint-geometry'
+import {setPageHintSessionActive} from './page-hint-state'
 
 export const PAGE_HINT_ALPHABETS = {
     colemak: [
@@ -427,6 +428,7 @@ export const stopPageHintSession = () => {
     document.querySelector(`.${PAGE_HINT_ROOT_CLASS}`)?.remove()
     document.body.classList.remove(PAGE_HINT_BODY_CLASS)
     activeSession = null
+    setPageHintSessionActive(false)
 }
 
 export const startPageHintSession = (mode: PageHintSelectionMode) => {
@@ -438,6 +440,7 @@ export const startPageHintSession = (mode: PageHintSelectionMode) => {
     }
 
     document.body.classList.add(PAGE_HINT_BODY_CLASS)
+    setPageHintSessionActive(true)
 
     const session: ActivePageHintSession = {
         isResolving: false,
