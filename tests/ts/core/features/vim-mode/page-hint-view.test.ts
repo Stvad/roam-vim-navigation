@@ -141,6 +141,50 @@ describe('Page hint view', () => {
         expect(targets.map(target => target.hint)).toEqual(['a', 's', 'd', 'f'])
     })
 
+    it('can scope visible targets down to blocks only', () => {
+        document.body.innerHTML = `
+            <div id="panel-main" class="roam-toolkit--panel">
+                <div id="block-main" class="roam-block">Main block</div>
+                <a id="link-main">Main link</a>
+            </div>
+        `
+
+        const block = document.getElementById('block-main') as HTMLElement
+        const link = document.getElementById('link-main') as HTMLElement
+        defineRects(block, createRect(120, 120, 320, 150))
+        defineRects(link, createRect(180, 120, 240, 135))
+
+        mockSelectedPanel.mockReturnValue({
+            selectedBlock: () => ({element: block}),
+        } as unknown as ReturnType<typeof VimRoamPanel.selected>)
+
+        const targets = collectPageHintTargets('blocks')
+
+        expect(targets.map(target => target.element.id)).toEqual(['block-main'])
+    })
+
+    it('can scope visible targets down to links only', () => {
+        document.body.innerHTML = `
+            <div id="panel-main" class="roam-toolkit--panel">
+                <div id="block-main" class="roam-block">Main block</div>
+                <a id="link-main">Main link</a>
+            </div>
+        `
+
+        const block = document.getElementById('block-main') as HTMLElement
+        const link = document.getElementById('link-main') as HTMLElement
+        defineRects(block, createRect(120, 120, 320, 150))
+        defineRects(link, createRect(180, 120, 240, 135))
+
+        mockSelectedPanel.mockReturnValue({
+            selectedBlock: () => ({element: link}),
+        } as unknown as ReturnType<typeof VimRoamPanel.selected>)
+
+        const targets = collectPageHintTargets('links')
+
+        expect(targets.map(target => target.element.id)).toEqual(['link-main'])
+    })
+
     it('selects a hinted block in normal mode', async () => {
         document.body.innerHTML = `
             <div id="panel-main" class="roam-toolkit--panel">
@@ -186,12 +230,35 @@ describe('Page hint view', () => {
             selectedBlock: () => ({element: block}),
         } as unknown as ReturnType<typeof VimRoamPanel.selected>)
 
-        expect(startPageHintSession('insert')).toBe(true)
+        expect(startPageHintSession('insert', 'blocks')).toBe(true)
         window.dispatchEvent(new KeyboardEvent('keydown', {key: 'a'}))
         await flushAsyncWork()
 
         expect(mockFocusBlockAtStart).toHaveBeenCalledWith(block)
         expect(mockUpdateVimView).toHaveBeenCalled()
+    })
+
+    it('does not render link hints in insert hint mode', () => {
+        document.body.innerHTML = `
+            <div id="panel-main" class="roam-toolkit--panel">
+                <div id="block-main" class="roam-block">Main block</div>
+                <a id="link-main">Main link</a>
+            </div>
+        `
+
+        const block = document.getElementById('block-main') as HTMLElement
+        const link = document.getElementById('link-main') as HTMLElement
+        defineRects(block, createRect(120, 120, 320, 150))
+        defineRects(link, createRect(180, 120, 240, 135))
+
+        mockSelectedPanel.mockReturnValue({
+            selectedBlock: () => ({element: block}),
+        } as unknown as ReturnType<typeof VimRoamPanel.selected>)
+
+        expect(startPageHintSession('insert', 'blocks')).toBe(true)
+
+        expect(document.querySelectorAll('.roam-toolkit--page-hint--block')).toHaveLength(1)
+        expect(document.querySelectorAll('.roam-toolkit--page-hint--link')).toHaveLength(0)
     })
 
     it('opens hinted links in the sidebar when the final key is shifted', async () => {

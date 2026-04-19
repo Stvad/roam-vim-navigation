@@ -77,6 +77,7 @@ export const PAGE_HINT_HOME_ROW_ALPHABETS = {
 } as const
 
 type PageHintSelectionMode = 'insert' | 'normal'
+type PageHintTargetScope = 'all' | 'blocks' | 'links'
 type PageHintTargetType = 'block' | 'link'
 
 type PageHintTarget = {
@@ -95,6 +96,7 @@ type ActivePageHintSession = {
     mode: PageHintSelectionMode
     prefix: string
     renderHandler: () => void
+    scope: PageHintTargetScope
     targets: PageHintTarget[]
 }
 
@@ -259,33 +261,39 @@ export const generatePageHintLabels = (
     return buildHintLabels(activeAlphabet, activePreferredAlphabet, hintLength).slice(0, targetCount)
 }
 
-export const collectPageHintTargets = (): PageHintTarget[] => {
+export const collectPageHintTargets = (scope: PageHintTargetScope = 'all'): PageHintTarget[] => {
     RoamPanel.tagPanels()
 
     const currentPanel = selectedPanelElement()
     const panels = Array.from(document.querySelectorAll(PANEL_SELECTOR)) as HTMLElement[]
     const orderedTargets = panels.flatMap((panel, panelIndex) => {
         const isCurrentPanel = panel === currentPanel
-        const blockTargets = Array.from(panel.querySelectorAll(BLOCK_TARGET_SELECTOR))
-            .filter(isEligibleBlockTarget)
-            .map<Omit<PageHintTarget, 'hint'>>((element, order) => ({
-                element,
-                elementId: element.id,
-                order,
-                panelIndex,
-                priorityTier: isCurrentPanel ? 0 : 2,
-                type: 'block',
-            }))
+        const blockTargets =
+            scope === 'links'
+                ? []
+                : Array.from(panel.querySelectorAll(BLOCK_TARGET_SELECTOR))
+                      .filter(isEligibleBlockTarget)
+                      .map<Omit<PageHintTarget, 'hint'>>((element, order) => ({
+                          element,
+                          elementId: element.id,
+                          order,
+                          panelIndex,
+                          priorityTier: isCurrentPanel ? 0 : 2,
+                          type: 'block',
+                      }))
 
-        const linkTargets = Array.from(panel.querySelectorAll(LINK_TARGET_SELECTOR))
-            .filter(isEligibleLinkTarget)
-            .map<Omit<PageHintTarget, 'hint'>>((element, order) => ({
-                element,
-                order,
-                panelIndex,
-                priorityTier: isCurrentPanel ? 1 : 3,
-                type: 'link',
-            }))
+        const linkTargets =
+            scope === 'blocks'
+                ? []
+                : Array.from(panel.querySelectorAll(LINK_TARGET_SELECTOR))
+                      .filter(isEligibleLinkTarget)
+                      .map<Omit<PageHintTarget, 'hint'>>((element, order) => ({
+                          element,
+                          order,
+                          panelIndex,
+                          priorityTier: isCurrentPanel ? 1 : 3,
+                          type: 'link',
+                      }))
 
         return [...blockTargets, ...linkTargets]
     })
@@ -482,10 +490,10 @@ export const stopPageHintSession = () => {
     setPageHintSessionActive(false)
 }
 
-export const startPageHintSession = (mode: PageHintSelectionMode) => {
+export const startPageHintSession = (mode: PageHintSelectionMode, scope: PageHintTargetScope = 'all') => {
     stopPageHintSession()
 
-    const targets = collectPageHintTargets()
+    const targets = collectPageHintTargets(scope)
     if (!targets.length) {
         return false
     }
@@ -501,6 +509,7 @@ export const startPageHintSession = (mode: PageHintSelectionMode) => {
         mode,
         prefix: '',
         renderHandler: () => renderPageHintSession(session),
+        scope,
         targets,
     }
 
