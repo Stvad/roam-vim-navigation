@@ -9,42 +9,96 @@ This README summarizes the current functionality, but the authoritative up-to-da
 ## Current Functionality
 
 - Normal, insert, and visual-mode style workflows for Roam blocks
-- Block navigation across the current panel:
-    - move up and down
-    - jump to the first or last visible block
-    - jump to the first or last block in the panel
-    - move by larger chunks and scroll while keeping selection visible
-- Panel navigation:
-    - switch between left and right panels
-    - close the current sidebar page
-- Roam navigation helpers:
-    - toggle block folding
-    - collapse into the parent block
-    - expand the last reference breadcrumb
-    - open the parent page or mentions, either in the main view or sidebar
-- Editing helpers:
-    - enter edit mode at the start or end of the selected block
-    - insert a block before or after the current one
-    - return to normal mode with `Escape`
-- Visual mode helpers:
-    - enter visual mode on the selected block
-    - grow selection upward or downward
-- Clipboard helpers:
-    - copy, cut, paste, and paste before
-    - copy a block reference
-    - copy a block embed
-- Block manipulation:
-    - move the current block up or down among siblings
-- History helpers:
-    - undo and redo
-- Hint-based actions:
-    - inline hints for clickable targets inside the selected block
-    - page-wide hints for visible blocks and links
-    - page hints can either select a target in normal mode or jump directly into insert mode
-- Roam-specific editing helpers:
-    - toggle `TODO` / `DONE`
-    - increment or decrement a single date reference by a day or a week
-    - reschedule SRS-style notes using the built-in SM2/Anki scheduler helpers
+- Vim-like navigation within the current panel and across sidebars
+- Selection, clipboard, block movement, history, hinting, and Roam-specific editing helpers
+
+## Default Keybindings
+
+Default layout preset is `qwerty`. The Roam settings panel remains the authoritative live list, because every shortcut can be remapped there.
+
+If you switch `Keyboard Layout` to `colemak`, these defaults change:
+
+| Action            | QWERTY | Colemak |
+| ----------------- | ------ | ------- |
+| Select Block Up   | `k`    | `h`     |
+| Select Block Down | `j`    | `k`     |
+| Select Panel Left | `h`    | `j`     |
+
+Page-hint labels also switch to a Colemak-friendly alphabet when that layout preset is selected.
+
+### Navigation and Panels
+
+| Mode            | Keys           | Action                                                            |
+| --------------- | -------------- | ----------------------------------------------------------------- |
+| Normal + Visual | `k`            | Select block up                                                   |
+| Normal + Visual | `j`            | Select block down                                                 |
+| Normal          | `Shift+H`      | Select first visible block                                        |
+| Normal          | `Shift+L`      | Select last visible block                                         |
+| Normal          | `g g`          | Select first block                                                |
+| Normal          | `Shift+G`      | Select last block                                                 |
+| Normal          | `Ctrl+U`       | Jump up by several blocks                                         |
+| Normal          | `Ctrl+D`       | Jump down by several blocks                                       |
+| Normal + Visual | `Ctrl+Y`       | Scroll up while keeping selection visible                         |
+| Normal + Visual | `Ctrl+E`       | Scroll down while keeping selection visible                       |
+| Normal + Insert | `Alt+Z`        | Expand last reference breadcrumb                                  |
+| Normal          | `Shift+Z`      | Collapse the current page view inside references or query results |
+| Normal          | `1`            | Open parent page                                                  |
+| Normal          | `Shift+1`      | Open parent page in sidebar                                       |
+| Normal          | `2`            | Open mentions                                                     |
+| Normal          | `Shift+2`      | Open mentions in sidebar                                          |
+| Normal          | `z`            | Toggle fold block                                                 |
+| Normal          | `Ctrl+Shift+Z` | Collapse into parent block                                        |
+| Normal          | `h`            | Select panel left                                                 |
+| Normal          | `l`            | Select panel right                                                |
+| All             | `Ctrl+W`       | Close current sidebar page                                        |
+
+### Editing, Selection, and Clipboard
+
+| Mode            | Keys          | Action                                             |
+| --------------- | ------------- | -------------------------------------------------- |
+| All             | `Escape`      | Return to normal mode                              |
+| Normal          | `i`           | Edit selected block at start of line               |
+| Normal          | `a`           | Edit selected block at end of line                 |
+| Normal          | `Shift+A`     | Edit selected block at end of line                 |
+| Normal          | `Shift+O`     | Insert block before current block                  |
+| Normal          | `o`           | Insert block after current block                   |
+| Normal          | `v`           | Enter visual mode                                  |
+| Normal + Visual | `Shift+K`     | Grow selection upward                              |
+| Normal + Visual | `Shift+J`     | Grow selection downward                            |
+| Normal          | `p`           | Paste below current block                          |
+| Normal          | `Shift+P`     | Paste before current block                         |
+| Normal + Visual | `y`           | Copy selected block or selection                   |
+| Normal + Visual | `Alt+Y`       | Copy block reference                               |
+| Normal + Visual | `Shift+Y`     | Copy block embed                                   |
+| Normal + Visual | `d`           | Enter visual mode, or cut current visual selection |
+| Normal + Insert | `Cmd+Shift+H` | Move current block up                              |
+| Normal + Insert | `Cmd+Shift+K` | Move current block down                            |
+| Normal          | `u`           | Undo                                               |
+| Normal          | `Ctrl+R`      | Redo                                               |
+
+### Hints
+
+| Mode   | Keys                                                                                                           | Action                                                              |
+| ------ | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Normal | `q`, `w`, `e`, `r`, `t`, `f`, `b`                                                                              | Click inline hint targets `0` through `6` inside the selected block |
+| Normal | `Shift+q`, `Shift+w`, `Shift+e`, `Shift+r`, `Shift+t`, `Shift+f`, `Shift+b`                                    | Shift-click inline hint targets `0` through `6`                     |
+| Normal | `Ctrl+Shift+q`, `Ctrl+Shift+w`, `Ctrl+Shift+e`, `Ctrl+Shift+r`, `Ctrl+Shift+t`, `Ctrl+Shift+f`, `Ctrl+Shift+b` | Modifier-click inline hint targets `0` through `6`                  |
+| Normal | `s`                                                                                                            | Start page-wide hint mode for visible blocks and links              |
+| Normal | `Shift+I`                                                                                                      | Start page-wide hint mode and enter insert mode on the chosen block |
+
+### Roam-Specific Helpers
+
+| Mode   | Keys              | Action                                                     |
+| ------ | ----------------- | ---------------------------------------------------------- |
+| Normal | `Cmd+Enter`       | Toggle `TODO` / `DONE`                                     |
+| Normal | `Ctrl+Shift+1`    | Reschedule current SRS note as `AGAIN`                     |
+| Normal | `Ctrl+Shift+2`    | Reschedule current SRS note as `HARD`                      |
+| Normal | `Ctrl+Shift+3`    | Reschedule current SRS note as `GOOD`                      |
+| Normal | `Ctrl+Shift+4`    | Reschedule current SRS note as `EASY`                      |
+| Normal | `Ctrl+Alt+Up`     | Increment the only date reference in the block by one day  |
+| Normal | `Ctrl+Alt+Down`   | Decrement the only date reference in the block by one day  |
+| Normal | `Ctrl+Shift+Up`   | Increment the only date reference in the block by one week |
+| Normal | `Ctrl+Shift+Down` | Decrement the only date reference in the block by one week |
 
 ## Settings Model
 
