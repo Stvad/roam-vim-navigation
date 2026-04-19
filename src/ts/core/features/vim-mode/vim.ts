@@ -90,7 +90,6 @@ export const map: CommandMapper = _map([Mode.NORMAL, Mode.VISUAL, Mode.INSERT])
 export const nmap: CommandMapper = _map([Mode.NORMAL])
 export const nimap: CommandMapper = _map([Mode.NORMAL, Mode.INSERT])
 export const nvmap: CommandMapper = _map([Mode.NORMAL, Mode.VISUAL])
-export const nvhmap: CommandMapper = _map([Mode.NORMAL, Mode.VISUAL, Mode.HINT])
 
 export const RoamVim = {
     async jumpBlocksInFocusedPanel(blocksToJump: number) {

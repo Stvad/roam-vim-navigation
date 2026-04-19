@@ -18,7 +18,6 @@ import {
     stopPageHintSession,
 } from 'src/core/features/vim-mode/page-hint-view'
 import {removeStyle} from 'src/core/common/css'
-import {createShortcutHelpEntries, resetHelpPanel, setShortcutHelpEntries} from 'src/core/features/vim-mode/help-panel'
 
 let extensionAPI: RoamExtensionAPI | null = null
 let unregisterHotkeys = () => {}
@@ -94,7 +93,6 @@ const renderHotkeys = async () => {
 
     const keyMap = await getCurrentKeyMap(extensionAPI, VIM_SHORTCUTS)
     const handlers = getShortcutHandlers(VIM_SHORTCUTS)
-    setShortcutHelpEntries(createShortcutHelpEntries(VIM_SHORTCUTS, keyMap))
 
     unregisterHotkeys()
     unregisterHotkeys = await registerHotkeys({keyMap, handlers})
@@ -140,7 +138,6 @@ const onunload = async () => {
     removeStyle('roam-toolkit-block-mode')
     removeStyle('roam-toolkit-block-mode--hint')
     removeStyle('roam-toolkit-block-mode--page-hint')
-    resetHelpPanel()
     extensionAPI = null
 }
 

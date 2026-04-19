@@ -51,7 +51,7 @@ import {getActiveEditElement} from 'src/core/common/dom'
 import {BlockManipulationCommands} from 'src/core/features/vim-mode/commands/block-manipulation-commands'
 import {isPageHintSessionActive} from 'src/core/features/vim-mode/page-hint-state'
 import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
-import {nmap, nvhmap} from 'src/core/features/vim-mode/vim'
+import {nmap} from 'src/core/features/vim-mode/vim'
 import {Roam} from 'src/core/roam/roam'
 import {RoamDb} from 'src/core/roam/roam-db'
 import {updateVimView} from 'src/core/features/vim-mode/vim-view'
@@ -154,23 +154,6 @@ describe('Vim mode shortcuts', () => {
         expect(event.stopPropagation).not.toHaveBeenCalled()
         expect(handler).not.toHaveBeenCalled()
         expect(mockUpdateVimView).not.toHaveBeenCalled()
-    })
-
-    it('handles non-insert shortcuts while page hint mode is active', async () => {
-        mockIsPageHintSessionActive.mockReturnValue(true)
-
-        const handler = jest.fn()
-        const shortcut = nvhmap('shift+/', 'Toggle Help Panel', handler)
-        const event = {
-            preventDefault: jest.fn(),
-            stopImmediatePropagation: jest.fn(),
-            stopPropagation: jest.fn(),
-        } as unknown as KeyboardEvent
-
-        await shortcut.onPress(event)
-
-        expect(handler).toHaveBeenCalledWith(expect.any(Number), event)
-        expect(mockUpdateVimView).toHaveBeenCalled()
     })
 
     it('creates unique ids for shortcuts that share a label', () => {

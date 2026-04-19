@@ -1,5 +1,5 @@
 import {startVimMode, stopVimMode} from 'src/core/features/vim-mode/vim-init'
-import {map, nmap, nvhmap, returnToNormalMode} from 'src/core/features/vim-mode/vim'
+import {map, nmap, returnToNormalMode} from 'src/core/features/vim-mode/vim'
 import {NavigationCommands} from 'src/core/features/vim-mode/commands/navigation-commands'
 import {HistoryCommands} from 'src/core/features/vim-mode/commands/history-commands'
 import {InsertCommands} from 'src/core/features/vim-mode/commands/insert-commands'
@@ -12,11 +12,9 @@ import {HintCommands} from 'src/core/features/vim-mode/commands/hint-commands'
 import {EditCommands} from 'src/core/features/vim-mode/commands/edit-commands'
 import {PageHintCommands} from 'src/core/features/vim-mode/commands/page-hint-commands'
 import {Shortcut} from 'src/core/features/vim-mode/types'
-import {toggleHelpPanel} from 'src/core/features/vim-mode/help-panel'
 
 export const VIM_SHORTCUTS: Shortcut[] = [
     map('Escape', 'Exit to Normal Mode', returnToNormalMode),
-    nvhmap('shift+/', 'Toggle Help Panel', toggleHelpPanel, {consumeEvent: true}),
     nmap('z', 'Toggle Fold Block', () => RoamBlock.selected().toggleFold()),
     ...NavigationCommands,
     ...PanelCommands,
