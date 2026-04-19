@@ -89,8 +89,10 @@ Page-hint labels also switch to a Colemak-friendly alphabet when that layout pre
 | Normal | `q`, `w`, `e`, `r`, `t`, `f`, `b`                                                                              | Click inline hint targets `0` through `6` inside the selected block |
 | Normal | `Shift+q`, `Shift+w`, `Shift+e`, `Shift+r`, `Shift+t`, `Shift+f`, `Shift+b`                                    | Shift-click inline hint targets `0` through `6`                     |
 | Normal | `Ctrl+Shift+q`, `Ctrl+Shift+w`, `Ctrl+Shift+e`, `Ctrl+Shift+r`, `Ctrl+Shift+t`, `Ctrl+Shift+f`, `Ctrl+Shift+b` | Modifier-click inline hint targets `0` through `6`                  |
-| Normal | `s`                                                                                                            | Start page-wide hint mode for visible blocks and links              |
-| Normal | `Shift+I`                                                                                                      | Start page-wide hint mode and enter insert mode on the chosen block |
+| Normal | `s`                                                                                                            | Start page-wide hint mode for visible blocks only                   |
+| Normal | `Shift+S`                                                                                                      | Start page-wide hint mode for visible blocks and links              |
+| Normal | `g l`                                                                                                          | Start page-wide hint mode for visible links only                    |
+| Normal | `Shift+I`                                                                                                      | Start page-wide hint mode for visible blocks and enter insert mode  |
 
 ### Roam-Specific Helpers
 
