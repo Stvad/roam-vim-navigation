@@ -1,23 +1,58 @@
 # Roam Toolkit Vim Mode
 
-Vim-like block navigation and editing for Roam (originally developed in Roam Toolkit browser extension)
+Standalone Vim-like navigation and editing for Roam Research, extracted from the original Roam Toolkit browser extension.
 
-![](./media/vim_demo.gif)
+![Roam Toolkit Vim Mode demo](https://raw.githubusercontent.com/Stvad/roam-vim-navigation/master/media/vim_demo.gif)
 
-To discover all available shortcuts, check the plugin settings in Roam.
+This README summarizes the current functionality, but the authoritative up-to-date shortcut list is in Roam under `Settings -> Extensions -> Roam Toolkit Vim Mode`, where every binding is editable.
 
-## What It Includes
+## Current Functionality
 
-- Vim-like block navigation
-- Visual mode and block selection helpers
-- Block editing, movement, clipboard, history, and date shortcuts
-- Roam-native settings stored through `extensionAPI.settings`
+- Normal, insert, and visual-mode style workflows for Roam blocks
+- Block navigation across the current panel:
+    - move up and down
+    - jump to the first or last visible block
+    - jump to the first or last block in the panel
+    - move by larger chunks and scroll while keeping selection visible
+- Panel navigation:
+    - switch between left and right panels
+    - close the current sidebar page
+- Roam navigation helpers:
+    - toggle block folding
+    - collapse into the parent block
+    - expand the last reference breadcrumb
+    - open the parent page or mentions, either in the main view or sidebar
+- Editing helpers:
+    - enter edit mode at the start or end of the selected block
+    - insert a block before or after the current one
+    - return to normal mode with `Escape`
+- Visual mode helpers:
+    - enter visual mode on the selected block
+    - grow selection upward or downward
+- Clipboard helpers:
+    - copy, cut, paste, and paste before
+    - copy a block reference
+    - copy a block embed
+- Block manipulation:
+    - move the current block up or down among siblings
+- History helpers:
+    - undo and redo
+- Hint-based actions:
+    - inline hints for clickable targets inside the selected block
+    - page-wide hints for visible blocks and links
+    - page hints can either select a target in normal mode or jump directly into insert mode
+- Roam-specific editing helpers:
+    - toggle `TODO` / `DONE`
+    - increment or decrement a single date reference by a day or a week
+    - reschedule SRS-style notes using the built-in SM2/Anki scheduler helpers
 
 ## Settings Model
 
-- `Keyboard Layout` switches the layout-sensitive bindings between `qwerty` and `colemak`
-- shortcuts are grouped by the modes they apply to, and each binding is editable through a Roam settings input
-- `Reset Shortcuts` restores the default keymap
+- `Keyboard Layout` switches layout-sensitive defaults between `qwerty` and `colemak`
+- layout-sensitive bindings update from that preset, and page-hint labels follow the selected alphabet
+- if the browser exposes keyboard layout change events, the plugin re-registers hotkeys automatically when the system layout changes
+- shortcuts are grouped by mode in the Roam settings panel, and each binding can be customized there
+- `Reset Shortcuts` restores the default keymap for the selected layout
 
 ## Build
 
