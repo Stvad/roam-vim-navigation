@@ -71,6 +71,11 @@ export const PAGE_HINT_ALPHABETS = {
     ],
 } as const
 
+export const PAGE_HINT_HOME_ROW_ALPHABETS = {
+    colemak: ['a', 'r', 's', 't', 'd', 'h', 'n', 'e', 'i', 'o'],
+    qwerty: ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+} as const
+
 type PageHintSelectionMode = 'insert' | 'normal'
 type PageHintTargetType = 'block' | 'link'
 
@@ -106,6 +111,7 @@ const LINK_HINT_X_OFFSET = 0
 const LINK_HINT_Y_OFFSET = -1
 
 let pageHintAlphabet: string[] = [...PAGE_HINT_ALPHABETS.qwerty]
+let pageHintHomeRowAlphabet: string[] = [...PAGE_HINT_HOME_ROW_ALPHABETS.qwerty]
 let activeSession: ActivePageHintSession | null = null
 
 const injectPageHintStyles = () => {
@@ -192,25 +198,65 @@ const selectedPanelElement = (): HTMLElement | null => {
 const compareTargets = (left: Omit<PageHintTarget, 'hint'>, right: Omit<PageHintTarget, 'hint'>) =>
     left.priorityTier - right.priorityTier || left.panelIndex - right.panelIndex || left.order - right.order
 
-export const generatePageHintLabels = (targetCount: number, alphabet: readonly string[] = pageHintAlphabet) => {
+const buildHintLabels = (alphabet: string[], preferredAlphabet: string[], hintLength: number): string[] => {
+    const alphabetIndex = new Map(alphabet.map((character, index) => [character, index]))
+    const preferredCharacters = new Set(preferredAlphabet)
+    const labels: string[] =
+        hintLength === 1
+            ? [...alphabet]
+            : (() => {
+                  const suffixes: string[] = buildHintLabels(alphabet, preferredAlphabet, hintLength - 1)
+                  return alphabet.flatMap((character: string) => suffixes.map((suffix: string) => character + suffix))
+              })()
+
+    return labels.sort((left: string, right: string) => {
+        const leftCharacters = [...left]
+        const rightCharacters = [...right]
+        const leftNonHomeRowCount = leftCharacters.filter(character => !preferredCharacters.has(character)).length
+        const rightNonHomeRowCount = rightCharacters.filter(character => !preferredCharacters.has(character)).length
+
+        if (leftNonHomeRowCount !== rightNonHomeRowCount) {
+            return leftNonHomeRowCount - rightNonHomeRowCount
+        }
+
+        for (let index = 0; index < hintLength; index += 1) {
+            const leftIsPreferred = preferredCharacters.has(leftCharacters[index])
+            const rightIsPreferred = preferredCharacters.has(rightCharacters[index])
+            if (leftIsPreferred !== rightIsPreferred) {
+                return leftIsPreferred ? -1 : 1
+            }
+        }
+
+        for (let index = hintLength - 1; index >= 0; index -= 1) {
+            const leftIndex = alphabetIndex.get(leftCharacters[index]) ?? Number.MAX_SAFE_INTEGER
+            const rightIndex = alphabetIndex.get(rightCharacters[index]) ?? Number.MAX_SAFE_INTEGER
+            if (leftIndex !== rightIndex) {
+                return leftIndex - rightIndex
+            }
+        }
+
+        return 0
+    })
+}
+
+export const generatePageHintLabels = (
+    targetCount: number,
+    alphabet: readonly string[] = pageHintAlphabet,
+    preferredAlphabet: readonly string[] = pageHintHomeRowAlphabet,
+) => {
     if (targetCount <= 0) {
         return []
     }
 
     const normalizedAlphabet = sanitizeAlphabet(alphabet)
-    const activeAlphabet = normalizedAlphabet.length ? normalizedAlphabet : PAGE_HINT_ALPHABETS.qwerty
+    const activeAlphabet = normalizedAlphabet.length ? normalizedAlphabet : [...PAGE_HINT_ALPHABETS.qwerty]
+    const normalizedPreferredAlphabet = sanitizeAlphabet(preferredAlphabet).filter(character =>
+        activeAlphabet.includes(character),
+    )
+    const activePreferredAlphabet = normalizedPreferredAlphabet.length ? normalizedPreferredAlphabet : activeAlphabet
     const base = activeAlphabet.length
     const hintLength = Math.max(1, Math.ceil(Math.log(targetCount) / Math.log(base)))
-
-    return Array.from({length: targetCount}, (_, index) => {
-        let hint = ''
-        let value = index
-        for (let position = 0; position < hintLength; position += 1) {
-            hint += activeAlphabet[value % base]
-            value = Math.floor(value / base)
-        }
-        return hint
-    })
+    return buildHintLabels(activeAlphabet, activePreferredAlphabet, hintLength).slice(0, targetCount)
 }
 
 export const collectPageHintTargets = (): PageHintTarget[] => {
@@ -408,13 +454,18 @@ const handlePageHintKeydown = async (event: KeyboardEvent, session: ActivePageHi
     await updatePrefix(event, session, session.prefix + key)
 }
 
-export const setPageHintAlphabet = (alphabet: readonly string[]) => {
+export const setPageHintAlphabet = (alphabet: readonly string[], preferredAlphabet: readonly string[] = alphabet) => {
     const normalizedAlphabet = sanitizeAlphabet(alphabet)
     pageHintAlphabet = normalizedAlphabet.length ? normalizedAlphabet : [...PAGE_HINT_ALPHABETS.qwerty]
+    const normalizedPreferredAlphabet = sanitizeAlphabet(preferredAlphabet).filter(character =>
+        pageHintAlphabet.includes(character),
+    )
+    pageHintHomeRowAlphabet = normalizedPreferredAlphabet.length ? normalizedPreferredAlphabet : [...pageHintAlphabet]
 }
 
 export const resetPageHintAlphabet = () => {
     pageHintAlphabet = [...PAGE_HINT_ALPHABETS.qwerty]
+    pageHintHomeRowAlphabet = [...PAGE_HINT_HOME_ROW_ALPHABETS.qwerty]
 }
 
 export const stopPageHintSession = () => {

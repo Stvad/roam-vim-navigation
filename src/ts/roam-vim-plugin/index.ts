@@ -13,6 +13,7 @@ import {isVimModeOn} from 'src/core/features/vim-mode/vim-init'
 import {DEFAULT_HINT_KEYS, resetHintKeyProvider, setHintKeyProvider} from 'src/core/features/vim-mode/hint-view'
 import {
     PAGE_HINT_ALPHABETS,
+    PAGE_HINT_HOME_ROW_ALPHABETS,
     resetPageHintAlphabet,
     setPageHintAlphabet,
     stopPageHintSession,
@@ -83,7 +84,7 @@ const syncHintKeys = async () => {
     })
 
     const keyboardLayout = await getKeyboardLayout(api)
-    setPageHintAlphabet(PAGE_HINT_ALPHABETS[keyboardLayout])
+    setPageHintAlphabet(PAGE_HINT_ALPHABETS[keyboardLayout], PAGE_HINT_HOME_ROW_ALPHABETS[keyboardLayout])
 }
 
 const renderHotkeys = async () => {

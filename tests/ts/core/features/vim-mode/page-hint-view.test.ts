@@ -105,6 +105,10 @@ describe('Page hint view', () => {
         expect(generatePageHintLabels(4, ['a', 's', 'd'])).toEqual(['aa', 'sa', 'da', 'as'])
     })
 
+    it('prefers home row-only sequences before using non-home-row characters', () => {
+        expect(generatePageHintLabels(5, ['a', 's', 'd', 'q'], ['a', 's', 'd'])).toEqual(['aa', 'sa', 'da', 'as', 'ss'])
+    })
+
     it('prioritizes blocks and links in the selected panel before other panels', () => {
         document.body.innerHTML = `
             <div id="panel-main" class="roam-toolkit--panel">
