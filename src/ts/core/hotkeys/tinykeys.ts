@@ -19,6 +19,7 @@ const MODIFIER_ALIASES: Record<string, string> = {
 }
 
 const KEY_ALIASES: Record<string, string> = {
+    '/': '(Slash)',
     backspace: 'Backspace',
     del: 'Delete',
     delete: 'Delete',

@@ -16,6 +16,7 @@ describe('Converting key sequences for tinykeys', () => {
         expect(toTinykeysKeySequence('ctrl+alt+up')).toEqual('Control+Alt+ArrowUp')
         expect(toTinykeysKeySequence('cmd+enter')).toEqual('Meta+Enter')
         expect(toTinykeysKeySequence('g g')).toEqual('g g')
+        expect(toTinykeysKeySequence('shift+/')).toEqual('Shift+(Slash)')
     })
 
     it('maps digit bindings to physical Digit codes to preserve the old keyCode-style behavior', () => {
@@ -64,6 +65,17 @@ describe('tinykeys matching behavior', () => {
         } as unknown as KeyboardEvent
 
         expect(matchKeyBindingPress(controlShift2Event, keyBindingPress)).toBe(true)
+    })
+
+    it('matches shift+/ when the browser reports ? as the key', () => {
+        const [keyBindingPress] = parseKeybinding(toTinykeysKeySequence('shift+/'))
+        const questionMarkEvent = {
+            code: 'Slash',
+            key: '?',
+            getModifierState: (modifier: string) => modifier === 'Shift',
+        } as unknown as KeyboardEvent
+
+        expect(matchKeyBindingPress(questionMarkEvent, keyBindingPress)).toBe(true)
     })
 })
 
