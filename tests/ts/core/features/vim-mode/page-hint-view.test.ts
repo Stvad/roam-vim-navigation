@@ -211,4 +211,29 @@ describe('Page hint view', () => {
         expect(mockLeftClick).toHaveBeenCalledWith(link, {shiftKey: true})
         expect(mockUpdateVimView).toHaveBeenCalled()
     })
+
+    it('positions link hints from the bottom right of the last rendered line', () => {
+        document.body.innerHTML = `
+            <div id="panel-main" class="roam-toolkit--panel">
+                <a id="link-main">Main link</a>
+            </div>
+        `
+
+        const link = document.getElementById('link-main') as HTMLElement
+        defineRects(link, createRect(180, 120, 420, 160), [
+            createRect(180, 120, 360, 140),
+            createRect(180, 140, 420, 160),
+        ])
+
+        mockSelectedPanel.mockReturnValue({
+            selectedBlock: () => ({element: link}),
+        } as unknown as ReturnType<typeof VimRoamPanel.selected>)
+
+        expect(startPageHintSession('normal')).toBe(true)
+
+        const overlay = document.querySelector('.roam-toolkit--page-hint--link') as HTMLElement
+
+        expect(Number.parseFloat(overlay.style.left)).toBe(420)
+        expect(Number.parseFloat(overlay.style.top)).toBe(159)
+    })
 })

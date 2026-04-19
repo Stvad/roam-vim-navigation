@@ -102,8 +102,8 @@ const PAGE_HINT_LINK_CLASS = `${PAGE_HINT_CLASS}--link`
 const BLOCK_TARGET_SELECTOR = `${Selectors.block}, ${Selectors.blockInput}`
 const LINK_TARGET_SELECTOR = [Selectors.link, Selectors.blockReference, Selectors.externalLink].join(', ')
 const BLOCK_HINT_X_OFFSET = -10
-const LINK_HINT_X_OFFSET = 6
-const LINK_HINT_Y_OFFSET = -2
+const LINK_HINT_X_OFFSET = 0
+const LINK_HINT_Y_OFFSET = -1
 
 let pageHintAlphabet: string[] = [...PAGE_HINT_ALPHABETS.qwerty]
 let activeSession: ActivePageHintSession | null = null
@@ -144,7 +144,7 @@ const injectPageHintStyles = () => {
             transform: translate(-100%, -35%);
         }
         .${PAGE_HINT_LINK_CLASS} {
-            transform: translate(0, -100%);
+            transform: none;
         }
         `,
         PAGE_HINT_STYLE_ID,
@@ -277,7 +277,7 @@ const getLinkHintPosition = (element: HTMLElement) => {
     const rect = getLastClientRect(element) ?? element.getBoundingClientRect()
     return {
         left: clamp(rect.right + LINK_HINT_X_OFFSET, 4, window.innerWidth - 4),
-        top: clamp(rect.top + LINK_HINT_Y_OFFSET, 4, window.innerHeight - 4),
+        top: clamp(rect.bottom + LINK_HINT_Y_OFFSET, 4, window.innerHeight - 4),
     }
 }
 
