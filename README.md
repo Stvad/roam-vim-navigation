@@ -18,11 +18,17 @@ Default layout preset is `qwerty`. The Roam settings panel remains the authorita
 
 If you switch `Keyboard Layout` to `colemak`, these defaults change:
 
-| Action            | QWERTY | Colemak |
-| ----------------- | ------ | ------- |
-| Select Block Up   | `k`    | `h`     |
-| Select Block Down | `j`    | `k`     |
-| Select Panel Left | `h`    | `j`     |
+| Action                                     | QWERTY         | Colemak        |
+| ------------------------------------------ | -------------- | -------------- |
+| Select Block Up                            | `k`            | `h`            |
+| Select Block Down                          | `j`            | `k`            |
+| Select Panel Left                          | `h`            | `j`            |
+| Move Block Up                              | `Cmd+Shift+K`  | `Cmd+Shift+H`  |
+| Move Block Down                            | `Cmd+Shift+J`  | `Cmd+Shift+K`  |
+| Increment Date (layout up key)             | `Ctrl+Alt+K`   | `Ctrl+Alt+H`   |
+| Decrement Date (layout down key)           | `Ctrl+Alt+J`   | `Ctrl+Alt+K`   |
+| Increment Date by a week (layout up key)   | `Ctrl+Shift+K` | `Ctrl+Shift+H` |
+| Decrement Date by a week (layout down key) | `Ctrl+Shift+J` | `Ctrl+Shift+K` |
 
 Page-hint labels also switch to a Colemak-friendly alphabet when that layout preset is selected.
 
@@ -71,8 +77,8 @@ Page-hint labels also switch to a Colemak-friendly alphabet when that layout pre
 | Normal + Visual | `Alt+Y`       | Copy block reference                               |
 | Normal + Visual | `Shift+Y`     | Copy block embed                                   |
 | Normal + Visual | `d`           | Enter visual mode, or cut current visual selection |
-| Normal + Insert | `Cmd+Shift+H` | Move current block up                              |
-| Normal + Insert | `Cmd+Shift+K` | Move current block down                            |
+| Normal + Insert | `Cmd+Shift+K` | Move current block up                              |
+| Normal + Insert | `Cmd+Shift+J` | Move current block down                            |
 | Normal          | `u`           | Undo                                               |
 | Normal          | `Ctrl+R`      | Redo                                               |
 
@@ -88,17 +94,21 @@ Page-hint labels also switch to a Colemak-friendly alphabet when that layout pre
 
 ### Roam-Specific Helpers
 
-| Mode   | Keys              | Action                                                     |
-| ------ | ----------------- | ---------------------------------------------------------- |
-| Normal | `Cmd+Enter`       | Toggle `TODO` / `DONE`                                     |
-| Normal | `Ctrl+Shift+1`    | Reschedule current SRS note as `AGAIN`                     |
-| Normal | `Ctrl+Shift+2`    | Reschedule current SRS note as `HARD`                      |
-| Normal | `Ctrl+Shift+3`    | Reschedule current SRS note as `GOOD`                      |
-| Normal | `Ctrl+Shift+4`    | Reschedule current SRS note as `EASY`                      |
-| Normal | `Ctrl+Alt+Up`     | Increment the only date reference in the block by one day  |
-| Normal | `Ctrl+Alt+Down`   | Decrement the only date reference in the block by one day  |
-| Normal | `Ctrl+Shift+Up`   | Increment the only date reference in the block by one week |
-| Normal | `Ctrl+Shift+Down` | Decrement the only date reference in the block by one week |
+| Mode   | Keys              | Action                                                                               |
+| ------ | ----------------- | ------------------------------------------------------------------------------------ |
+| Normal | `Cmd+Enter`       | Toggle `TODO` / `DONE`                                                               |
+| Normal | `Ctrl+Shift+1`    | Reschedule current SRS note as `AGAIN`                                               |
+| Normal | `Ctrl+Shift+2`    | Reschedule current SRS note as `HARD`                                                |
+| Normal | `Ctrl+Shift+3`    | Reschedule current SRS note as `GOOD`                                                |
+| Normal | `Ctrl+Shift+4`    | Reschedule current SRS note as `EASY`                                                |
+| Normal | `Ctrl+Alt+Up`     | Increment the only date reference in the block by one day                            |
+| Normal | `Ctrl+Alt+Down`   | Decrement the only date reference in the block by one day                            |
+| Normal | `Ctrl+Alt+K`      | Increment the only date reference in the block by one day using the layout up key    |
+| Normal | `Ctrl+Alt+J`      | Decrement the only date reference in the block by one day using the layout down key  |
+| Normal | `Ctrl+Shift+Up`   | Increment the only date reference in the block by one week                           |
+| Normal | `Ctrl+Shift+Down` | Decrement the only date reference in the block by one week                           |
+| Normal | `Ctrl+Shift+K`    | Increment the only date reference in the block by one week using the layout up key   |
+| Normal | `Ctrl+Shift+J`    | Decrement the only date reference in the block by one week using the layout down key |
 
 ## Settings Model
 

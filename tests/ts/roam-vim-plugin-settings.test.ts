@@ -45,8 +45,48 @@ const shortcuts: Shortcut[] = [
         type: 'shortcut',
         id: 'move-block-up',
         label: 'Move Block Up',
-        initValue: 'command+shift+h',
+        initValue: 'command+shift+k',
         modes: ['normal', 'insert'],
+        onPress: jest.fn(),
+    },
+    {
+        type: 'shortcut',
+        id: 'move-block-down',
+        label: 'Move Block Down',
+        initValue: 'command+shift+j',
+        modes: ['normal', 'insert'],
+        onPress: jest.fn(),
+    },
+    {
+        type: 'shortcut',
+        id: 'increment-date-layout-up',
+        label: 'Increment Date (Layout Up Key)',
+        initValue: 'ctrl+alt+k',
+        modes: ['normal'],
+        onPress: jest.fn(),
+    },
+    {
+        type: 'shortcut',
+        id: 'decrement-date-layout-down',
+        label: 'Decrement Date (Layout Down Key)',
+        initValue: 'ctrl+alt+j',
+        modes: ['normal'],
+        onPress: jest.fn(),
+    },
+    {
+        type: 'shortcut',
+        id: 'increment-date-week-layout-up',
+        label: 'Increment Date by a week (Layout Up Key)',
+        initValue: 'ctrl+shift+k',
+        modes: ['normal'],
+        onPress: jest.fn(),
+    },
+    {
+        type: 'shortcut',
+        id: 'decrement-date-week-layout-down',
+        label: 'Decrement Date by a week (Layout Down Key)',
+        initValue: 'ctrl+shift+j',
+        modes: ['normal'],
         onPress: jest.fn(),
     },
     {
@@ -91,6 +131,12 @@ describe('Roam Vim plugin keyboard layout settings', () => {
         const selectBlockUp = getShortcut('Select Block Up')
         const selectBlockDown = getShortcut('Select Block Down')
         const selectPanelLeft = getShortcut('Select Panel Left')
+        const moveBlockUp = getShortcut('Move Block Up')
+        const moveBlockDown = getShortcut('Move Block Down')
+        const incrementDateLayoutUp = getShortcut('Increment Date (Layout Up Key)')
+        const decrementDateLayoutDown = getShortcut('Decrement Date (Layout Down Key)')
+        const incrementWeekLayoutUp = getShortcut('Increment Date by a week (Layout Up Key)')
+        const decrementWeekLayoutDown = getShortcut('Decrement Date by a week (Layout Down Key)')
 
         await initializeSettings(extensionAPI, shortcuts)
 
@@ -99,6 +145,12 @@ describe('Roam Vim plugin keyboard layout settings', () => {
         expect(state[selectBlockUp.id]).toEqual('k')
         expect(state[selectBlockDown.id]).toEqual('j')
         expect(state[selectPanelLeft.id]).toEqual('h')
+        expect(state[moveBlockUp.id]).toEqual('command+shift+k')
+        expect(state[moveBlockDown.id]).toEqual('command+shift+j')
+        expect(state[incrementDateLayoutUp.id]).toEqual('ctrl+alt+k')
+        expect(state[decrementDateLayoutDown.id]).toEqual('ctrl+alt+j')
+        expect(state[incrementWeekLayoutUp.id]).toEqual('ctrl+shift+k')
+        expect(state[decrementWeekLayoutDown.id]).toEqual('ctrl+shift+j')
     })
 
     it('applies the colemak preset only to layout-sensitive shortcuts', async () => {
@@ -109,6 +161,12 @@ describe('Roam Vim plugin keyboard layout settings', () => {
         const selectBlockUp = getShortcut('Select Block Up')
         const selectBlockDown = getShortcut('Select Block Down')
         const selectPanelLeft = getShortcut('Select Panel Left')
+        const moveBlockUp = getShortcut('Move Block Up')
+        const moveBlockDown = getShortcut('Move Block Down')
+        const incrementDateLayoutUp = getShortcut('Increment Date (Layout Up Key)')
+        const decrementDateLayoutDown = getShortcut('Decrement Date (Layout Down Key)')
+        const incrementWeekLayoutUp = getShortcut('Increment Date by a week (Layout Up Key)')
+        const decrementWeekLayoutDown = getShortcut('Decrement Date by a week (Layout Down Key)')
 
         await initializeSettings(extensionAPI, shortcuts)
         await applyKeyboardLayoutPreset(extensionAPI, shortcuts, 'colemak')
@@ -117,6 +175,12 @@ describe('Roam Vim plugin keyboard layout settings', () => {
         expect(state[selectBlockUp.id]).toEqual('h')
         expect(state[selectBlockDown.id]).toEqual('k')
         expect(state[selectPanelLeft.id]).toEqual('j')
+        expect(state[moveBlockUp.id]).toEqual('command+shift+h')
+        expect(state[moveBlockDown.id]).toEqual('command+shift+k')
+        expect(state[incrementDateLayoutUp.id]).toEqual('ctrl+alt+h')
+        expect(state[decrementDateLayoutDown.id]).toEqual('ctrl+alt+k')
+        expect(state[incrementWeekLayoutUp.id]).toEqual('ctrl+shift+h')
+        expect(state[decrementWeekLayoutDown.id]).toEqual('ctrl+shift+k')
         expect(state[openMentions.id]).toEqual('9')
     })
 
@@ -135,21 +199,26 @@ describe('Roam Vim plugin keyboard layout settings', () => {
             'section-normal',
             'select-panel-left',
             'open-mentions',
+            'increment-date-layout-up',
+            'decrement-date-layout-down',
+            'increment-date-week-layout-up',
+            'decrement-date-week-layout-down',
             'section-normal-visual',
             'select-block-up',
             'select-block-down',
             'section-normal-insert',
             'move-block-up',
+            'move-block-down',
             'section-normal-visual-insert',
             'exit-to-normal-mode',
         ])
         expect(panelConfig.settings.map((setting: {name: string}) => setting.name).filter(Boolean)).not.toContain(
-            'Enable Vim Mode'
+            'Enable Vim Mode',
         )
         expect(
             panelConfig.settings
                 .filter((setting: {action: {type: string}}) => setting.action.type === 'reactComponent')
-                .map((setting: {id: string}) => setting.id)
+                .map((setting: {id: string}) => setting.id),
         ).toEqual(['section-normal', 'section-normal-visual', 'section-normal-insert', 'section-normal-visual-insert'])
     })
 })

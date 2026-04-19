@@ -32,7 +32,7 @@ const moveSelectedBlock = async (offset: number) => {
     if (focusedBlock?.['block-uid'] === uid && activeNode) {
         RoamDb.focusBlock(
             {...focusedBlock, 'block-uid': uid},
-            selectionParams(activeNode.selection.start, activeNode.selection.end)
+            selectionParams(activeNode.selection.start, activeNode.selection.end),
         )
     }
 }
@@ -56,8 +56,15 @@ const collapseIntoParent = async () => {
     VimRoamPanel.selected().selectBlock(parentBlock.id)
 }
 
+// Preserve existing settings ids while changing the qwerty defaults to the layout up/down keys.
+const moveBlockUpShortcut = nimap('command+shift+h', 'Move Block Up', moveBlockUp, {consumeEvent: true})
+moveBlockUpShortcut.initValue = 'command+shift+k'
+
+const moveBlockDownShortcut = nimap('command+shift+k', 'Move Block Down', moveBlockDown, {consumeEvent: true})
+moveBlockDownShortcut.initValue = 'command+shift+j'
+
 export const BlockManipulationCommands = [
-    nimap('command+shift+h', 'Move Block Up', moveBlockUp, {consumeEvent: true}),
-    nimap('command+shift+k', 'Move Block Down', moveBlockDown, {consumeEvent: true}),
+    moveBlockUpShortcut,
+    moveBlockDownShortcut,
     nmap('shift+ctrl+z', 'Collapse Into Parent', collapseIntoParent),
 ]

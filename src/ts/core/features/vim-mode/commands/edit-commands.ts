@@ -50,18 +50,22 @@ const modifyBlockDate = async (modifier: (input: number) => number) => {
         uid,
         originalText.replace(
             datesInContent[0],
-            RoamDate.formatPage(modifyDate(RoamDate.parseFromReference(datesInContent[0]), modifier))
-        )
+            RoamDate.formatPage(modifyDate(RoamDate.parseFromReference(datesInContent[0]), modifier)),
+        ),
     )
 }
 
 export const EditCommands = [
     nmap('cmd+enter', 'Toggle done', toggleDone, {consumeEvent: true}),
     ...SRSSignals.map(it =>
-        nmap(`ctrl+shift+${it}`, `Reschedule Current Note (${SRSSignal[it]})`, () => rescheduleSelectedNote(it))
+        nmap(`ctrl+shift+${it}`, `Reschedule Current Note (${SRSSignal[it]})`, () => rescheduleSelectedNote(it)),
     ),
     nmap('ctrl+alt+up', 'Increment Date', () => modifyBlockDate(createModifier(1))),
     nmap('ctrl+alt+down', 'Decrement Date', () => modifyBlockDate(createModifier(-1))),
+    nmap('ctrl+alt+k', 'Increment Date (Layout Up Key)', () => modifyBlockDate(createModifier(1))),
+    nmap('ctrl+alt+j', 'Decrement Date (Layout Down Key)', () => modifyBlockDate(createModifier(-1))),
     nmap('ctrl+shift+up', 'Increment Date by a week', () => modifyBlockDate(createModifier(7))),
     nmap('ctrl+shift+down', 'Decrement Date by a week', () => modifyBlockDate(createModifier(-7))),
+    nmap('ctrl+shift+k', 'Increment Date by a week (Layout Up Key)', () => modifyBlockDate(createModifier(7))),
+    nmap('ctrl+shift+j', 'Decrement Date by a week (Layout Down Key)', () => modifyBlockDate(createModifier(-7))),
 ]
