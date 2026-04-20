@@ -12,11 +12,7 @@ jest.mock('src/core/features/vim-mode/roam/roam-vim-panel', () => ({
 }))
 
 jest.mock('src/core/common/keyboard', () => ({
-    Keyboard: {
-        pressEsc: jest.fn(),
-        pressShiftTab: jest.fn(),
-        pressTab: jest.fn(),
-    },
+    Keyboard: {},
 }))
 
 jest.mock('src/core/features/vim-mode/roam/roam-highlight', () => ({
@@ -39,6 +35,7 @@ jest.mock('src/core/roam/roam-db', () => ({
         getBlockOrder: jest.fn(),
         getChildBlockUids: jest.fn(),
         getFocusedBlock: jest.fn(),
+        moveBlock: jest.fn(),
         getParentBlockUid: jest.fn(),
         reorderBlocks: jest.fn(),
         setBlockOpen: jest.fn(),
@@ -47,13 +44,11 @@ jest.mock('src/core/roam/roam-db', () => ({
 
 jest.mock('src/core/roam/roam', () => ({
     Roam: {
-        focusBlockAtStart: jest.fn(),
         getActiveRoamNode: jest.fn(),
     },
 }))
 
 import {getActiveEditElement} from 'src/core/common/dom'
-import {Keyboard} from 'src/core/common/keyboard'
 import {BlockManipulationCommands} from 'src/core/features/vim-mode/commands/block-manipulation-commands'
 import {isPageHintSessionActive} from 'src/core/features/vim-mode/page-hint-state'
 import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
@@ -64,16 +59,15 @@ import {updateVimView} from 'src/core/features/vim-mode/vim-view'
 
 describe('Vim mode shortcuts', () => {
     const mockGetActiveEditElement = getActiveEditElement as jest.MockedFunction<typeof getActiveEditElement>
-    const mockPressEsc = Keyboard.pressEsc as jest.MockedFunction<typeof Keyboard.pressEsc>
-    const mockPressTab = Keyboard.pressTab as jest.MockedFunction<typeof Keyboard.pressTab>
     const mockGetActiveRoamNode = Roam.getActiveRoamNode as jest.MockedFunction<typeof Roam.getActiveRoamNode>
-    const mockFocusBlockAtStart = Roam.focusBlockAtStart as jest.MockedFunction<typeof Roam.focusBlockAtStart>
     const mockGetBlockOrder = RoamDb.getBlockOrder as jest.MockedFunction<typeof RoamDb.getBlockOrder>
     const mockGetChildBlockUids = RoamDb.getChildBlockUids as jest.MockedFunction<typeof RoamDb.getChildBlockUids>
     const mockGetFocusedBlock = RoamDb.getFocusedBlock as jest.MockedFunction<typeof RoamDb.getFocusedBlock>
+    const mockMoveBlock = RoamDb.moveBlock as jest.MockedFunction<typeof RoamDb.moveBlock>
     const mockGetParentBlockUid = RoamDb.getParentBlockUid as jest.MockedFunction<typeof RoamDb.getParentBlockUid>
     const mockIsPageHintSessionActive = isPageHintSessionActive as jest.MockedFunction<typeof isPageHintSessionActive>
     const mockReorderBlocks = RoamDb.reorderBlocks as jest.MockedFunction<typeof RoamDb.reorderBlocks>
+    const mockSetBlockOpen = RoamDb.setBlockOpen as jest.MockedFunction<typeof RoamDb.setBlockOpen>
     const mockSelectedBlock = RoamBlock.selected as jest.MockedFunction<typeof RoamBlock.selected>
     const mockUpdateVimView = updateVimView as jest.MockedFunction<typeof updateVimView>
 
@@ -82,10 +76,9 @@ describe('Vim mode shortcuts', () => {
         document.body.innerHTML = ''
         mockGetActiveEditElement.mockReturnValue(null)
         mockIsPageHintSessionActive.mockReturnValue(false)
-        mockFocusBlockAtStart.mockResolvedValue(undefined)
-        mockPressEsc.mockResolvedValue(undefined)
-        mockPressTab.mockResolvedValue(undefined)
+        mockMoveBlock.mockResolvedValue(undefined)
         mockReorderBlocks.mockResolvedValue(undefined)
+        mockSetBlockOpen.mockResolvedValue(undefined)
     })
 
     it('does not consume handled keyboard events unless requested', async () => {
@@ -206,11 +199,14 @@ describe('Vim mode shortcuts', () => {
     })
 
     it('consumes normal mode tab before running native indent behavior', async () => {
-        const target = document.createElement('div')
-        target.id = 'block-abc123xyz'
-        mockSelectedBlock.mockReturnValue({element: target, id: target.id} as unknown as ReturnType<
-            typeof RoamBlock.selected
-        >)
+        mockSelectedBlock.mockReturnValue({id: 'block-abc123xyz'} as unknown as ReturnType<typeof RoamBlock.selected>)
+        mockGetParentBlockUid.mockReturnValue('parent123')
+        mockGetBlockOrder.mockReturnValue(1)
+        mockGetChildBlockUids.mockImplementation(parentUid => {
+            if (parentUid === 'parent123') return ['first1111', 'abc123xyz']
+            if (parentUid === 'first1111') return ['nested-a']
+            return []
+        })
 
         const indentShortcut = BlockManipulationCommands[3]
         const nativeEvent = {stopImmediatePropagation: jest.fn()}
@@ -227,9 +223,12 @@ describe('Vim mode shortcuts', () => {
         expect(event.stopPropagation).toHaveBeenCalled()
         expect(event.stopImmediatePropagation).toHaveBeenCalled()
         expect(nativeEvent.stopImmediatePropagation).toHaveBeenCalled()
-        expect(mockFocusBlockAtStart).toHaveBeenCalledWith(target)
-        expect(mockPressTab).toHaveBeenCalled()
-        expect(mockPressEsc).toHaveBeenCalled()
+        expect(mockSetBlockOpen).toHaveBeenCalledWith('first1111', true)
+        expect(mockMoveBlock).toHaveBeenCalledWith({
+            uid: 'abc123xyz',
+            parentUid: 'first1111',
+            order: 1,
+        })
         expect(mockUpdateVimView).toHaveBeenCalled()
     })
 })
