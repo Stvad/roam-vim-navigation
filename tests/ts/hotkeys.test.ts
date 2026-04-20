@@ -104,6 +104,19 @@ describe('Not recursively triggering our own hotkeys when simulating keys for na
         expect(ourCustomEscapeHotkey).not.toHaveBeenCalled()
     })
 
+    it("should not trigger our own Tab hotkey when simulating 'Tab' from a different hotkey", async () => {
+        const ourCustomTabHotkey = jest.fn()
+        const tabHandler = adaptHandler('tab', ourCustomTabHotkey)
+        const anotherHandler = adaptHandler('D', async () => {
+            await delay(1)
+            tabHandler({} as KeyboardEvent)
+        })
+
+        await anotherHandler({} as KeyboardEvent)
+
+        expect(ourCustomTabHotkey).not.toHaveBeenCalled()
+    })
+
     it("allows keys that aren't simulated to run while other hotkeys are running", async () => {
         const ourCustomHotkey = jest.fn()
         const handler = adaptHandler('J', async () => {

@@ -6,7 +6,7 @@ export type KeySequenceString = string
  * These keys should not trigger other handlers in the middle of an existing handler.
  * Allow the others to run concurrently though, so the UI feels more responsive.
  */
-const KEYS_THAT_WE_ALSO_SIMULATE: KeySequenceString[] = ['Escape']
+const KEYS_THAT_WE_ALSO_SIMULATE: KeySequenceString[] = ['Escape', 'tab', 'shift+tab']
 
 /**
  * A "KeySequence" is a series of one or more KeyChords to press in succession, separated by space.

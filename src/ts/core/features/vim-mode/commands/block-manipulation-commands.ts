@@ -5,6 +5,7 @@ import {RoamDb} from 'src/core/roam/roam-db'
 import {Selectors} from 'src/core/roam/selectors'
 import {VimRoamPanel} from 'src/core/features/vim-mode/roam/roam-vim-panel'
 import {Roam} from 'src/core/roam/roam'
+import {Keyboard} from 'src/core/common/keyboard'
 
 const selectionParams = (start: number, end: number) => (start === end ? {start} : {start, end})
 
@@ -41,6 +42,16 @@ const moveBlockUp = () => moveSelectedBlock(-1)
 
 const moveBlockDown = () => moveSelectedBlock(1)
 
+const runNativeTabBehavior = async (action: () => Promise<void>) => {
+    await Roam.focusBlockAtStart(RoamBlock.selected().element)
+    await action()
+    await Keyboard.pressEsc()
+}
+
+const indentBlock = () => runNativeTabBehavior(() => Keyboard.pressTab())
+
+const outdentBlock = () => runNativeTabBehavior(() => Keyboard.pressShiftTab())
+
 const collapseIntoParent = async () => {
     const selected = RoamBlock.selected()
     const uid = getBlockUid(selected.id)
@@ -67,4 +78,6 @@ export const BlockManipulationCommands = [
     moveBlockUpShortcut,
     moveBlockDownShortcut,
     nmap('shift+ctrl+z', 'Collapse Into Parent', collapseIntoParent),
+    nmap('tab', 'Indent Block', indentBlock, {consumeEvent: true}),
+    nmap('shift+tab', 'Outdent Block', outdentBlock, {consumeEvent: true}),
 ]

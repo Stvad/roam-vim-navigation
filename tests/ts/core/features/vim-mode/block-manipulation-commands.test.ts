@@ -23,7 +23,16 @@ jest.mock('src/core/roam/roam-db', () => ({
 
 jest.mock('src/core/roam/roam', () => ({
     Roam: {
+        focusBlockAtStart: jest.fn(),
         getActiveRoamNode: jest.fn(),
+    },
+}))
+
+jest.mock('src/core/common/keyboard', () => ({
+    Keyboard: {
+        pressEsc: jest.fn(),
+        pressShiftTab: jest.fn(),
+        pressTab: jest.fn(),
     },
 }))
 
@@ -36,10 +45,15 @@ jest.mock('src/core/features/vim-mode/roam/roam-vim-panel', () => ({
 import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
 import {RoamDb} from 'src/core/roam/roam-db'
 import {Roam} from 'src/core/roam/roam'
+import {Keyboard} from 'src/core/common/keyboard'
 import {BlockManipulationCommands} from 'src/core/features/vim-mode/commands/block-manipulation-commands'
 
 describe('Block manipulation commands', () => {
     const selected = RoamBlock.selected as jest.MockedFunction<typeof RoamBlock.selected>
+    const focusBlockAtStart = Roam.focusBlockAtStart as jest.MockedFunction<typeof Roam.focusBlockAtStart>
+    const pressEsc = Keyboard.pressEsc as jest.MockedFunction<typeof Keyboard.pressEsc>
+    const pressShiftTab = Keyboard.pressShiftTab as jest.MockedFunction<typeof Keyboard.pressShiftTab>
+    const pressTab = Keyboard.pressTab as jest.MockedFunction<typeof Keyboard.pressTab>
     const reorderBlocks = RoamDb.reorderBlocks as jest.MockedFunction<typeof RoamDb.reorderBlocks>
     const focusBlock = RoamDb.focusBlock as jest.MockedFunction<typeof RoamDb.focusBlock>
     const getBlockOrder = RoamDb.getBlockOrder as jest.MockedFunction<typeof RoamDb.getBlockOrder>
@@ -51,17 +65,21 @@ describe('Block manipulation commands', () => {
     beforeEach(() => {
         jest.clearAllMocks()
         reorderBlocks.mockResolvedValue(undefined)
+        focusBlockAtStart.mockResolvedValue(undefined)
+        pressEsc.mockResolvedValue(undefined)
+        pressShiftTab.mockResolvedValue(undefined)
+        pressTab.mockResolvedValue(undefined)
     })
 
     it('reorders sibling blocks when moving the selected block down', async () => {
-        selected.mockReturnValue(({id: 'block-abc123xyz'} as unknown) as ReturnType<typeof RoamBlock.selected>)
+        selected.mockReturnValue({id: 'block-abc123xyz'} as unknown as ReturnType<typeof RoamBlock.selected>)
         getParentBlockUid.mockReturnValue('parent123')
         getBlockOrder.mockReturnValue(1)
         getChildBlockUids.mockReturnValue(['first1111', 'abc123xyz', 'third3333'])
         getFocusedBlock.mockReturnValue({'block-uid': 'abc123xyz', 'window-id': 'main-window'})
         getActiveRoamNode.mockReturnValue({selection: {start: 2, end: 4}} as ReturnType<typeof Roam.getActiveRoamNode>)
 
-        const moveBlockDown = (BlockManipulationCommands[1] as unknown) as () => Promise<void>
+        const moveBlockDown = BlockManipulationCommands[1] as unknown as () => Promise<void>
         await moveBlockDown()
 
         expect(reorderBlocks).toHaveBeenCalledWith({
@@ -70,20 +88,46 @@ describe('Block manipulation commands', () => {
         })
         expect(focusBlock).toHaveBeenCalledWith(
             {'block-uid': 'abc123xyz', 'window-id': 'main-window'},
-            {start: 2, end: 4}
+            {start: 2, end: 4},
         )
     })
 
     it('does nothing when trying to move the first block up', async () => {
-        selected.mockReturnValue(({id: 'block-abc123xyz'} as unknown) as ReturnType<typeof RoamBlock.selected>)
+        selected.mockReturnValue({id: 'block-abc123xyz'} as unknown as ReturnType<typeof RoamBlock.selected>)
         getParentBlockUid.mockReturnValue('parent123')
         getBlockOrder.mockReturnValue(0)
         getChildBlockUids.mockReturnValue(['abc123xyz', 'second222', 'third3333'])
 
-        const moveBlockUp = (BlockManipulationCommands[0] as unknown) as () => Promise<void>
+        const moveBlockUp = BlockManipulationCommands[0] as unknown as () => Promise<void>
         await moveBlockUp()
 
         expect(reorderBlocks).not.toHaveBeenCalled()
         expect(focusBlock).not.toHaveBeenCalled()
+    })
+
+    it('runs Roam native indent behavior for the selected block in normal mode', async () => {
+        const target = document.createElement('div')
+        target.id = 'block-abc123xyz'
+        selected.mockReturnValue({element: target, id: target.id} as unknown as ReturnType<typeof RoamBlock.selected>)
+
+        const indentBlock = BlockManipulationCommands[3] as unknown as () => Promise<void>
+        await indentBlock()
+
+        expect(focusBlockAtStart).toHaveBeenCalledWith(target)
+        expect(pressTab).toHaveBeenCalledTimes(1)
+        expect(pressEsc).toHaveBeenCalledTimes(1)
+    })
+
+    it('runs Roam native outdent behavior for the selected block in normal mode', async () => {
+        const target = document.createElement('div')
+        target.id = 'block-abc123xyz'
+        selected.mockReturnValue({element: target, id: target.id} as unknown as ReturnType<typeof RoamBlock.selected>)
+
+        const outdentBlock = BlockManipulationCommands[4] as unknown as () => Promise<void>
+        await outdentBlock()
+
+        expect(focusBlockAtStart).toHaveBeenCalledWith(target)
+        expect(pressShiftTab).toHaveBeenCalledTimes(1)
+        expect(pressEsc).toHaveBeenCalledTimes(1)
     })
 })
