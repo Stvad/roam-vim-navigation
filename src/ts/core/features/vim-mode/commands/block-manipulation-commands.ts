@@ -5,6 +5,7 @@ import {RoamDb} from 'src/core/roam/roam-db'
 import {Selectors} from 'src/core/roam/selectors'
 import {VimRoamPanel} from 'src/core/features/vim-mode/roam/roam-vim-panel'
 import {Roam} from 'src/core/roam/roam'
+import {delay} from 'src/core/common/async'
 
 const selectionParams = (start: number, end: number) => (start === end ? {start} : {start, end})
 
@@ -57,6 +58,7 @@ const indentBlock = async () => {
         parentUid: previousSiblingUid,
         order: RoamDb.getChildBlockUids(previousSiblingUid).length,
     })
+    await delay(0)
 }
 
 const outdentBlock = async () => {
@@ -69,6 +71,7 @@ const outdentBlock = async () => {
     if (!grandparentUid || parentOrder === null) return
 
     await RoamDb.moveBlock({uid, parentUid: grandparentUid, order: parentOrder + 1})
+    await delay(0)
 }
 
 const collapseIntoParent = async () => {

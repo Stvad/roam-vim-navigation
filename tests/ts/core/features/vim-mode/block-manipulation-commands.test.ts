@@ -3,6 +3,10 @@ jest.mock('src/core/features/vim-mode/vim', () => ({
     nmap: (_key: string, _label: string, onPress: () => Promise<void> | void) => onPress,
 }))
 
+jest.mock('src/core/common/async', () => ({
+    delay: jest.fn().mockResolvedValue(undefined),
+}))
+
 jest.mock('src/core/features/vim-mode/roam/roam-block', () => ({
     RoamBlock: {
         selected: jest.fn(),
@@ -35,11 +39,13 @@ jest.mock('src/core/features/vim-mode/roam/roam-vim-panel', () => ({
 }))
 
 import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
+import {delay} from 'src/core/common/async'
 import {RoamDb} from 'src/core/roam/roam-db'
 import {Roam} from 'src/core/roam/roam'
 import {BlockManipulationCommands} from 'src/core/features/vim-mode/commands/block-manipulation-commands'
 
 describe('Block manipulation commands', () => {
+    const mockDelay = delay as jest.MockedFunction<typeof delay>
     const selected = RoamBlock.selected as jest.MockedFunction<typeof RoamBlock.selected>
     const moveBlock = RoamDb.moveBlock as jest.MockedFunction<typeof RoamDb.moveBlock>
     const reorderBlocks = RoamDb.reorderBlocks as jest.MockedFunction<typeof RoamDb.reorderBlocks>
@@ -53,6 +59,7 @@ describe('Block manipulation commands', () => {
 
     beforeEach(() => {
         jest.clearAllMocks()
+        mockDelay.mockResolvedValue(undefined)
         moveBlock.mockResolvedValue(undefined)
         reorderBlocks.mockResolvedValue(undefined)
         setBlockOpen.mockResolvedValue(undefined)
@@ -111,6 +118,7 @@ describe('Block manipulation commands', () => {
             parentUid: 'first1111',
             order: 2,
         })
+        expect(mockDelay).toHaveBeenCalledWith(0)
     })
 
     it('does not indent the first sibling', async () => {
@@ -142,6 +150,7 @@ describe('Block manipulation commands', () => {
             parentUid: 'grandparent456',
             order: 3,
         })
+        expect(mockDelay).toHaveBeenCalledWith(0)
     })
 
     it('does not outdent top-level blocks', async () => {
