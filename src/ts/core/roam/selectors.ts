@@ -1,5 +1,6 @@
 export const Selectors = {
     link: '.rm-page-ref',
+    attributeReference: '.rm-attr-ref',
     hiddenSection: '.rm-block__part--equals',
     block: '.roam-block',
     blockInput: '.rm-block-input',

@@ -79,6 +79,7 @@ export const updateVimHints = (block: HTMLElement) => {
     // button is for reference counts
     const clickableSelectors = [
         Selectors.link,
+        Selectors.attributeReference,
         Selectors.externalLink,
         Selectors.checkbox,
         Selectors.button,

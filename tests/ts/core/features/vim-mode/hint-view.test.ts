@@ -108,4 +108,32 @@ describe('Vim hint view', () => {
         expect(Math.abs(overlayLeft - lastLineRight)).toBeLessThan(Math.abs(overlayLeft - firstLineRight))
         expect(Math.abs(overlayTop - lastLineBottom)).toBeLessThan(Math.abs(overlayTop - firstLineBottom))
     })
+
+    it('treats attribute references as hintable links', async () => {
+        const {updateVimHints, resetHintKeyProvider} = await import('src/core/features/vim-mode/hint-view')
+        document.body.innerHTML = `
+            <div id="block">
+                <span tabindex="-1" class="rm-attr-ref" data-link-uid="leyqQmtku">repeat interval:</span>
+            </div>
+        `
+
+        const block = document.getElementById('block') as HTMLElement
+        const attributeReference = block.querySelector('.rm-attr-ref') as HTMLElement
+
+        Object.defineProperty(block, 'getBoundingClientRect', {
+            value: () => createRect(100, 200, 500, 260),
+        })
+        Object.defineProperty(attributeReference, 'getBoundingClientRect', {
+            value: () => createRect(120, 220, 260, 240),
+        })
+        Object.defineProperty(attributeReference, 'getClientRects', {
+            value: () => [createRect(120, 220, 260, 240)] as unknown as DOMRectList,
+        })
+
+        await resetHintKeyProvider()
+        updateVimHints(block)
+
+        expect(attributeReference.classList.contains('roam-toolkit--hint')).toBe(true)
+        expect(block.querySelector('.roam-toolkit--hint-overlay.roam-toolkit--hint-overlay0')).not.toBeNull()
+    })
 })

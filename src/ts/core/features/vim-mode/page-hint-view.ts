@@ -107,7 +107,12 @@ const PAGE_HINT_CLASS = 'roam-toolkit--page-hint'
 const PAGE_HINT_BLOCK_CLASS = `${PAGE_HINT_CLASS}--block`
 const PAGE_HINT_LINK_CLASS = `${PAGE_HINT_CLASS}--link`
 const BLOCK_TARGET_SELECTOR = `${Selectors.block}, ${Selectors.blockInput}`
-const LINK_TARGET_SELECTOR = [Selectors.link, Selectors.blockReference, Selectors.externalLink].join(', ')
+const LINK_TARGET_SELECTOR = [
+    Selectors.link,
+    Selectors.attributeReference,
+    Selectors.blockReference,
+    Selectors.externalLink,
+].join(', ')
 const BLOCK_HINT_X_OFFSET = -10
 const LINK_HINT_X_OFFSET = 0
 const LINK_HINT_Y_OFFSET = -1

@@ -185,6 +185,28 @@ describe('Page hint view', () => {
         expect(targets.map(target => target.element.id)).toEqual(['link-main'])
     })
 
+    it('treats attribute references as link targets in page hint mode', () => {
+        document.body.innerHTML = `
+            <div id="panel-main" class="roam-toolkit--panel">
+                <div id="block-main" class="roam-block">Main block</div>
+                <span id="attr-main" tabindex="-1" class="rm-attr-ref" data-link-uid="leyqQmtku">repeat interval:</span>
+            </div>
+        `
+
+        const block = document.getElementById('block-main') as HTMLElement
+        const attributeReference = document.getElementById('attr-main') as HTMLElement
+        defineRects(block, createRect(120, 120, 320, 150))
+        defineRects(attributeReference, createRect(180, 120, 280, 135))
+
+        mockSelectedPanel.mockReturnValue({
+            selectedBlock: () => ({element: block}),
+        } as unknown as ReturnType<typeof VimRoamPanel.selected>)
+
+        const targets = collectPageHintTargets('links')
+
+        expect(targets.map(target => target.element.id)).toEqual(['attr-main'])
+    })
+
     it('selects a hinted block in normal mode', async () => {
         document.body.innerHTML = `
             <div id="panel-main" class="roam-toolkit--panel">
