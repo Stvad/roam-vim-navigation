@@ -11,6 +11,7 @@ This README summarizes the current functionality, but the authoritative up-to-da
 - Normal, insert, and visual-mode style workflows for Roam blocks
 - Vim-like navigation within the current panel and across sidebars
 - Selection, clipboard, block movement, history, hinting, and Roam-specific editing helpers
+- Normal-mode `Tab` / `Shift+Tab` shortcuts for Roam-style indenting and outdenting
 
 ## Default Keybindings
 
@@ -68,6 +69,8 @@ Page-hint labels also switch to a Colemak-friendly alphabet when that layout pre
 | Normal          | `Shift+A`     | Edit selected block at end of line                 |
 | Normal          | `Shift+O`     | Insert block before current block                  |
 | Normal          | `o`           | Insert block after current block                   |
+| Normal          | `Tab`         | Indent current block under the previous sibling    |
+| Normal          | `Shift+Tab`   | Outdent current block to the parent level          |
 | Normal          | `v`           | Enter visual mode                                  |
 | Normal + Visual | `Shift+K`     | Grow selection upward                              |
 | Normal + Visual | `Shift+J`     | Grow selection downward                            |
