@@ -110,6 +110,7 @@ const BLOCK_TARGET_SELECTOR = `${Selectors.block}, ${Selectors.blockInput}`
 const LINK_TARGET_SELECTOR = [
     Selectors.link,
     Selectors.attributeReference,
+    Selectors.multibar,
     Selectors.blockReference,
     Selectors.externalLink,
 ].join(', ')

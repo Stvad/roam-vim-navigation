@@ -207,6 +207,28 @@ describe('Page hint view', () => {
         expect(targets.map(target => target.element.id)).toEqual(['attr-main'])
     })
 
+    it('treats multibars as link targets in page hint mode', () => {
+        document.body.innerHTML = `
+            <div id="panel-main" class="roam-toolkit--panel">
+                <div id="block-main" class="roam-block">Main block</div>
+                <div id="multibar-main" class="rm-multibar"></div>
+            </div>
+        `
+
+        const block = document.getElementById('block-main') as HTMLElement
+        const multibar = document.getElementById('multibar-main') as HTMLElement
+        defineRects(block, createRect(120, 120, 320, 150))
+        defineRects(multibar, createRect(180, 120, 280, 135))
+
+        mockSelectedPanel.mockReturnValue({
+            selectedBlock: () => ({element: block}),
+        } as unknown as ReturnType<typeof VimRoamPanel.selected>)
+
+        const targets = collectPageHintTargets('links')
+
+        expect(targets.map(target => target.element.id)).toEqual(['multibar-main'])
+    })
+
     it('selects a hinted block in normal mode', async () => {
         document.body.innerHTML = `
             <div id="panel-main" class="roam-toolkit--panel">
