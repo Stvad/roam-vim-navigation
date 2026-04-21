@@ -327,7 +327,7 @@ describe('Page hint view', () => {
         expect(mockUpdateVimView).toHaveBeenCalled()
     })
 
-    it('positions link hints from the bottom right of the last rendered line', () => {
+    it('positions text link hints from the leading edge of the first rendered line', () => {
         document.body.innerHTML = `
             <div id="panel-main" class="roam-toolkit--panel">
                 <a id="link-main">Main link</a>
@@ -348,7 +348,30 @@ describe('Page hint view', () => {
 
         const overlay = document.querySelector('.roam-toolkit--page-hint--link') as HTMLElement
 
-        expect(Number.parseFloat(overlay.style.left)).toBe(420)
-        expect(Number.parseFloat(overlay.style.top)).toBe(159)
+        expect(Number.parseFloat(overlay.style.left)).toBe(180)
+        expect(Number.parseFloat(overlay.style.top)).toBe(129)
+    })
+
+    it('positions multibar hints in the center of the element', () => {
+        document.body.innerHTML = `
+            <div id="panel-main" class="roam-toolkit--panel">
+                <div id="multibar-main" class="rm-multibar"></div>
+            </div>
+        `
+
+        const multibar = document.getElementById('multibar-main') as HTMLElement
+        defineRects(multibar, createRect(180, 120, 280, 140))
+
+        mockSelectedPanel.mockReturnValue({
+            selectedBlock: () => ({element: multibar}),
+        } as unknown as ReturnType<typeof VimRoamPanel.selected>)
+
+        expect(startPageHintSession('normal', 'links')).toBe(true)
+
+        const overlay = document.querySelector('.roam-toolkit--page-hint--link') as HTMLElement
+
+        expect(overlay.classList.contains('roam-toolkit--page-hint--centered')).toBe(true)
+        expect(Number.parseFloat(overlay.style.left)).toBe(230)
+        expect(Number.parseFloat(overlay.style.top)).toBe(130)
     })
 })

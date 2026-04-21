@@ -9,7 +9,7 @@ import {VimRoamPanel} from 'src/core/features/vim-mode/roam/roam-vim-panel'
 import {returnToNormalMode} from 'src/core/features/vim-mode/vim'
 import {updateVimView} from 'src/core/features/vim-mode/vim-view'
 
-import {getFirstClientRect, getLastClientRect, isElementVisibleInViewport} from './hint-geometry'
+import {getFirstClientRect, isElementVisibleInViewport} from './hint-geometry'
 import {setPageHintSessionActive} from './page-hint-state'
 
 export const PAGE_HINT_ALPHABETS = {
@@ -106,6 +106,7 @@ const PAGE_HINT_ROOT_CLASS = 'roam-toolkit--page-hint-root'
 const PAGE_HINT_CLASS = 'roam-toolkit--page-hint'
 const PAGE_HINT_BLOCK_CLASS = `${PAGE_HINT_CLASS}--block`
 const PAGE_HINT_LINK_CLASS = `${PAGE_HINT_CLASS}--link`
+const PAGE_HINT_CENTERED_CLASS = `${PAGE_HINT_CLASS}--centered`
 const BLOCK_TARGET_SELECTOR = `${Selectors.block}, ${Selectors.blockInput}`
 const LINK_TARGET_SELECTOR = [
     Selectors.link,
@@ -158,7 +159,10 @@ const injectPageHintStyles = () => {
             transform: translate(-100%, -35%);
         }
         .${PAGE_HINT_LINK_CLASS} {
-            transform: none;
+            transform: translate(-100%, -35%);
+        }
+        .${PAGE_HINT_CENTERED_CLASS} {
+            transform: translate(-50%, -50%);
         }
         `,
         PAGE_HINT_STYLE_ID,
@@ -333,11 +337,21 @@ const getBlockHintPosition = (element: HTMLElement) => {
     }
 }
 
+const isCenteredLinkTarget = (element: HTMLElement) => element.matches(Selectors.multibar)
+
 const getLinkHintPosition = (element: HTMLElement) => {
-    const rect = getLastClientRect(element) ?? element.getBoundingClientRect()
+    if (isCenteredLinkTarget(element)) {
+        const rect = element.getBoundingClientRect()
+        return {
+            left: clamp(rect.left + rect.width / 2, 4, window.innerWidth - 4),
+            top: clamp(rect.top + rect.height / 2, 4, window.innerHeight - 4),
+        }
+    }
+
+    const rect = getFirstClientRect(element) ?? element.getBoundingClientRect()
     return {
-        left: clamp(rect.right + LINK_HINT_X_OFFSET, 4, window.innerWidth - 4),
-        top: clamp(rect.bottom + LINK_HINT_Y_OFFSET, 4, window.innerHeight - 4),
+        left: clamp(rect.left + LINK_HINT_X_OFFSET, 4, window.innerWidth - 4),
+        top: clamp(rect.top + Math.min(rect.height / 2, 10) + LINK_HINT_Y_OFFSET, 4, window.innerHeight - 4),
     }
 }
 
@@ -357,6 +371,7 @@ const renderPageHintSession = (session: ActivePageHintSession) => {
         overlay.className = [
             PAGE_HINT_CLASS,
             target.type === 'block' ? PAGE_HINT_BLOCK_CLASS : PAGE_HINT_LINK_CLASS,
+            target.type === 'link' && isCenteredLinkTarget(target.element) ? PAGE_HINT_CENTERED_CLASS : '',
         ].join(' ')
         overlay.textContent = suffix
         overlay.style.left = `${left}px`
