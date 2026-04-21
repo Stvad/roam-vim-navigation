@@ -196,8 +196,14 @@ const closestHintTargetAncestor = (element: Element): Element | null =>
 const isEligibleBlockTarget = (element: Element): element is HTMLElement =>
     element instanceof HTMLElement && Boolean(element.id) && isElementVisibleInViewport(element)
 
+const hasVisibleMultibarHeight = (element: HTMLElement) =>
+    !element.matches(Selectors.multibar) || element.getBoundingClientRect().height > 0
+
 const isEligibleLinkTarget = (element: Element): element is HTMLElement =>
-    element instanceof HTMLElement && isElementVisibleInViewport(element) && !closestHintTargetAncestor(element)
+    element instanceof HTMLElement &&
+    hasVisibleMultibarHeight(element) &&
+    isElementVisibleInViewport(element) &&
+    !closestHintTargetAncestor(element)
 
 const selectedPanelElement = (): HTMLElement | null => {
     try {

@@ -229,6 +229,28 @@ describe('Page hint view', () => {
         expect(targets.map(target => target.element.id)).toEqual(['multibar-main'])
     })
 
+    it('ignores zero-height multibars in page hint mode', () => {
+        document.body.innerHTML = `
+            <div id="panel-main" class="roam-toolkit--panel">
+                <div id="block-main" class="roam-block">Main block</div>
+                <div id="multibar-empty" class="rm-multibar"></div>
+            </div>
+        `
+
+        const block = document.getElementById('block-main') as HTMLElement
+        const multibar = document.getElementById('multibar-empty') as HTMLElement
+        defineRects(block, createRect(120, 120, 320, 150))
+        defineRects(multibar, createRect(180, 120, 280, 120))
+
+        mockSelectedPanel.mockReturnValue({
+            selectedBlock: () => ({element: block}),
+        } as unknown as ReturnType<typeof VimRoamPanel.selected>)
+
+        const targets = collectPageHintTargets('links')
+
+        expect(targets).toHaveLength(0)
+    })
+
     it('selects a hinted block in normal mode', async () => {
         document.body.innerHTML = `
             <div id="panel-main" class="roam-toolkit--panel">
