@@ -39,12 +39,14 @@ describe('Reference breadcrumb expansion', () => {
     const leftClick = Mouse.leftClick as jest.MockedFunction<typeof Mouse.leftClick>
     const fromBlock = VimRoamPanel.fromBlock as jest.MockedFunction<typeof VimRoamPanel.fromBlock>
     const focusBlockSelection = Roam.focusBlockSelection as jest.MockedFunction<typeof Roam.focusBlockSelection>
-    const scrollUntilBlockIsVisible = jest.fn()
+    const scrollBlockIntoViewAfterLayout = jest.fn()
 
     beforeEach(() => {
         jest.clearAllMocks()
         document.body.innerHTML = ''
-        fromBlock.mockReturnValue({scrollUntilBlockIsVisible} as unknown as ReturnType<typeof VimRoamPanel.fromBlock>)
+        fromBlock.mockReturnValue({scrollBlockIntoViewAfterLayout} as unknown as ReturnType<
+            typeof VimRoamPanel.fromBlock
+        >)
     })
 
     it('reselects the current block after expanding a page-reference breadcrumb', async () => {
@@ -55,7 +57,7 @@ describe('Reference breadcrumb expansion', () => {
 
         expect(leftClick).toHaveBeenCalledTimes(1)
         expect(fromBlock).toHaveBeenCalledWith(block)
-        expect(scrollUntilBlockIsVisible).toHaveBeenCalledWith(block)
+        expect(scrollBlockIntoViewAfterLayout).toHaveBeenCalledWith(block)
         expect(focusBlockSelection).not.toHaveBeenCalled()
     })
 
@@ -73,7 +75,7 @@ describe('Reference breadcrumb expansion', () => {
 
         await expandLastBreadcrumb()
 
-        expect(scrollUntilBlockIsVisible).not.toHaveBeenCalled()
+        expect(scrollBlockIntoViewAfterLayout).not.toHaveBeenCalled()
         expect(focusBlockSelection).toHaveBeenCalledWith(block, {start: 2, end: 4})
     })
 
@@ -84,7 +86,7 @@ describe('Reference breadcrumb expansion', () => {
         await expandLastBreadcrumb()
 
         expect(leftClick).toHaveBeenCalledTimes(2)
-        expect(scrollUntilBlockIsVisible).toHaveBeenCalledWith(block)
+        expect(scrollBlockIntoViewAfterLayout).toHaveBeenCalledWith(block)
     })
 
     it('does not require a standard panel for custom rendered inline references', async () => {

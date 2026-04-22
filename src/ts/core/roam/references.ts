@@ -53,6 +53,7 @@ const restoreSelectedBlock = async (selectedBlockId: string, selection: BlockSel
     }
 
     if (selection) {
+        await delay(0)
         await Roam.focusBlockSelection(selectedBlock, selection)
         return
     }
@@ -61,7 +62,7 @@ const restoreSelectedBlock = async (selectedBlockId: string, selection: BlockSel
         return
     }
 
-    VimRoamPanel.fromBlock(selectedBlock).scrollUntilBlockIsVisible(selectedBlock)
+    await VimRoamPanel.fromBlock(selectedBlock).scrollBlockIntoViewAfterLayout(selectedBlock)
 }
 
 export const expandLastBreadcrumb = async () => {
@@ -83,7 +84,6 @@ export const expandLastBreadcrumb = async () => {
     )
 
     if (pageReferenceExpanded || inlineReferenceExpanded) {
-        await delay(0)
         await restoreSelectedBlock(selectedBlockId, selection)
     }
 }

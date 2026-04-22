@@ -4,7 +4,6 @@ import {closePageReferenceView, expandLastBreadcrumb, openMentions, openParentPa
 import {RoamBlock} from 'src/core/features/vim-mode/roam/roam-block'
 import {Selectors} from 'src/core/roam/selectors'
 import {findNextNode} from 'src/core/common/dom'
-import {delay} from 'src/core/common/async'
 
 const collapseReferenceView = async () => {
     const referenceItem = RoamBlock.selected().element?.closest(Selectors.referenceItem)
@@ -12,16 +11,9 @@ const collapseReferenceView = async () => {
     const nextBlockId = nextItem?.querySelector(`${Selectors.block}, ${Selectors.blockInput}`)?.id
 
     await closePageReferenceView()
-    await delay(0)
 
     const panel = VimRoamPanel.selected()
-
-    if (nextBlockId) {
-        panel.selectBlock(nextBlockId)
-    }
-
-    await delay(0)
-    panel.scrollUntilBlockIsVisible(panel.selectedBlock().element)
+    await panel.selectBlockAfterLayout(nextBlockId)
 }
 
 export const NavigationCommands = [

@@ -61,11 +61,8 @@ describe('Shift+Z reference collapse', () => {
         `
 
         const currentBlock = document.getElementById('selected-block') as HTMLElement
-        const nextBlock = document.getElementById('next-block') as HTMLElement
         const panel = {
-            scrollUntilBlockIsVisible: jest.fn(),
-            selectBlock: jest.fn(),
-            selectedBlock: jest.fn(() => ({element: nextBlock})),
+            selectBlockAfterLayout: jest.fn(),
         }
 
         selected.mockReturnValue({element: currentBlock} as ReturnType<typeof RoamBlock.selected>)
@@ -76,8 +73,7 @@ describe('Shift+Z reference collapse', () => {
         await shortcut?.onPress(event)
 
         expect(closeReferenceView).toHaveBeenCalledTimes(1)
-        expect(panel.selectBlock).toHaveBeenCalledWith('next-block')
-        expect(panel.scrollUntilBlockIsVisible).toHaveBeenCalledWith(nextBlock)
+        expect(panel.selectBlockAfterLayout).toHaveBeenCalledWith('next-block')
     })
 
     it('still scrolls the active block into view when there is no next reference item', async () => {
@@ -89,9 +85,7 @@ describe('Shift+Z reference collapse', () => {
 
         const currentBlock = document.getElementById('selected-block') as HTMLElement
         const panel = {
-            scrollUntilBlockIsVisible: jest.fn(),
-            selectBlock: jest.fn(),
-            selectedBlock: jest.fn(() => ({element: currentBlock})),
+            selectBlockAfterLayout: jest.fn(),
         }
 
         selected.mockReturnValue({element: currentBlock} as ReturnType<typeof RoamBlock.selected>)
@@ -101,7 +95,6 @@ describe('Shift+Z reference collapse', () => {
         const shortcut = NavigationCommands.find(command => command.initValue === 'shift+z')
         await shortcut?.onPress(event)
 
-        expect(panel.selectBlock).not.toHaveBeenCalled()
-        expect(panel.scrollUntilBlockIsVisible).toHaveBeenCalledWith(currentBlock)
+        expect(panel.selectBlockAfterLayout).toHaveBeenCalledWith(undefined)
     })
 })

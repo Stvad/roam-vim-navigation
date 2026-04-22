@@ -46,6 +46,21 @@ describe('VimRoamPanel visible block selection', () => {
 
         expect(panelElement.scrollTop).toBe(-60)
     })
+
+    it('can re-scroll the selected block after layout updates settle', async () => {
+        const {panel, blocks} = createPanelWithBlocks([
+            {id: 'block-top', top: 90, height: 30, width: 100},
+            {id: 'block-middle', top: 150, height: 30, width: 100},
+        ])
+        const scrollUntilBlockIsVisible = jest.spyOn(panel, 'scrollUntilBlockIsVisible')
+
+        panel.selectBlock(blocks[0].id)
+        scrollUntilBlockIsVisible.mockClear()
+
+        await panel.selectBlockAfterLayout()
+
+        expect(scrollUntilBlockIsVisible).toHaveBeenCalledWith(blocks[0])
+    })
 })
 
 const createPanelWithBlocks = (blockRects: ({id: string} & Rect)[]) => {

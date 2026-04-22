@@ -6,6 +6,7 @@ import {BlockElement, BlockId, RoamBlock} from 'src/core/features/vim-mode/roam/
 import {relativeItem} from 'src/core/common/array'
 import {PANEL_SELECTOR, PanelElement} from 'src/core/roam/panel/roam-panel-utils'
 import {RoamPanel} from 'src/core/roam/panel/roam-panel'
+import {delay} from 'src/core/common/async'
 
 type BlockNavigationState = {
     panelOrder: PanelId[]
@@ -102,6 +103,19 @@ export class VimRoamPanel {
 
     scrollUntilBlockIsVisible(block: BlockElement) {
         this.scroll(blockScrollOverflow(block))
+    }
+
+    async scrollBlockIntoViewAfterLayout(block: BlockElement = this.selectedBlock().element) {
+        await delay(0)
+        this.scrollUntilBlockIsVisible(block)
+    }
+
+    async selectBlockAfterLayout(blockId?: BlockId) {
+        if (blockId) {
+            this.selectBlock(blockId)
+        }
+
+        await this.scrollBlockIntoViewAfterLayout()
     }
 
     firstBlock(): BlockElement {
