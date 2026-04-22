@@ -88,13 +88,15 @@ export const expandLastBreadcrumb = async () => {
     }
 }
 
-export const closePageReferenceView = () => {
+export const closePageReferenceView = async () => {
     const referenceItem = RoamBlock.selected().element?.closest(
         Selectors.pageReferenceItem + ',' + Selectors.inlineReference,
     )
     const foldButton = referenceItem?.querySelector(Selectors.foldButton)
 
-    if (foldButton) Mouse.leftClick(foldButton as HTMLElement)
+    if (foldButton) {
+        await Mouse.leftClick(foldButton as HTMLElement)
+    }
 }
 
 const parentPageLink = (blockElement: BlockElement | null): HTMLElement | null => {
